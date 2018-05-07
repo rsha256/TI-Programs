@@ -5,6 +5,12 @@ This repository has all calculator's programs that i have picked up. If you want
 
 To Archive and UnArchive: 2nd then + then 2 then 7 (the * means it IS archived)
 
+## Chemistry Programs
+
+solrules - app made by TI to show sol rules
+
+anyform - has a read me 
+
 ## Math prgms:
 
 FINANCE - finds the population growth/decay
