@@ -15,6 +15,15 @@ anyform - has a read me
 
 FINANCE - finds the population growth/decay
 
+Compound:
+- P = Principal (starting amount)
+- A = Final Amount
+- r = rate (5% must be entered at `0.05`)
+- m = amount of compundings (annual = 1, semi-annual = 2, quarterly = 4, monthly = 12, weekly = 52, daily = 365)
+- T = Time (in years - can be expressed as a decimal if necessary)
+
+- **remember that 14.2 years rounds up to 15 years as they wont get their money until the end of the year**
+
 HALFLIFE - finds orig amnt, final amnt, halflife, or time. As long as the other 3 are known
 
 LOGARITHM - does logarithms with bases other than 10
