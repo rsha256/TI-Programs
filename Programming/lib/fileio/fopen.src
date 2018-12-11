@@ -1,0 +1,71 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FOPEN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	FILE *fopen(const char *filename, const char *mode) {
+_fopen:
+	LD	HL,-1
+	CALL	__frameset
+;    5	    ti_var_t f = ti_Open(filename, mode);
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_ti_Open
+	POP	BC
+	POP	BC
+	LD	(IX+-1),A
+;    6	    if (!f) {
+	OR	A,A
+	JR	NZ,L_1
+	OR	A,A
+;    7	        return NULL;
+	SBC	HL,HL
+	JR	L_2
+;    8	    }
+L_1:
+;    9	    __stdio_files[(unsigned char)f].slot = f;
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,___stdio_files
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IX+-1)
+	LD	(IY+0),A
+;   10	
+;   11	    return &__stdio_files[f];
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,BC
+;   12	}
+L_2:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fopen ***************************
+;Name                         Addr/Register   Size   Type
+;___stdio_files                      IMPORT      5   variable
+;_ti_Open                            IMPORT  -----   function
+;f                                     IX-1      1   variable
+;mode                                  IX+9      3   parameter
+;filename                              IX+6      3   parameter
+
+
+; Stack Frame Size: 13 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF ___stdio_files:ROM
+	XREF _ti_Open:ROM
+	XREF __frameset:ROM
+	XDEF _fopen
+	END

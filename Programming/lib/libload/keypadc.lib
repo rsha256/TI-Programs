@@ -1,0 +1,5 @@
+library	"KEYPADC", 2
+	export	kb_Scan ; 2
+	export	kb_ScanGroup ; 4
+	export	kb_AnyKey ; 6
+	export	kb_Reset ; 8

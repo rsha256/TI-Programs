@@ -1,0 +1,51 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\PRINT_PUTCH.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	#include <format.h>
+;    6	#include <string.h>
+;    7	#include <stdlib.h>
+;    8	
+;    9	extern void (*__print_xputch)(char);
+;   10	
+;   11	/* Send a character to the printf/sprintf destination                      */
+;   12	/* The compiler may generate direct calls to this to bypass the runtime    */
+;   13	/* parsing of printf formats.                                              */
+;   14	
+;   15	void __print_putch(char ch) {
+___print_putch:
+	CALL	__frameset0
+;   16		(*__print_xputch)(ch);
+	LD	C,(IX+6)
+	LD	B,0
+	PUSH	BC
+	LD	IY,(___print_xputch)
+	CALL	__indcall
+	POP	BC
+;   17	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** ___print_putch ***************************
+;Name                         Addr/Register   Size   Type
+;___print_xputch                     IMPORT      3   variable
+;ch                                    IX+6      1   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF ___print_xputch:ROM
+	XREF __indcall:ROM
+	XREF __frameset0:ROM
+	XDEF ___print_putch
+	END

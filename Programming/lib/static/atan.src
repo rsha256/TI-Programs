@@ -1,0 +1,341 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\ATAN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/* Copyright (c) 2000-2008 Zilog, Inc. */
+;    2	
+;    3	/**
+;    4	 * floating-point arctangent
+;    5	 * 
+;    6	 * atan returns the value of the arctangent of its
+;    7	 * argument in the range [-pi/2,pi/2].
+;    8	 * 
+;    9	 * atan2 returns the arctangent of arg1/arg2
+;   10	 * in the range [-pi,pi].
+;   11	 * 
+;   12	 * there are no error returns.
+;   13	 * 
+;   14	 * coefficients are #5077 from Hart & Cheney. (19.56D)
+;   15	 */
+;   16	
+;   17	
+;   18	#define sq2p1	2.41421356237309e0
+;   19	#define sq2m1	0.414213562373095e0
+;   20	#define pio2	1.57079632679489e0
+;   21	#define pio4	0.785398163397448e0
+;   22	#define p4	0.161536412982230e2
+;   23	#define p3	0.268425481955040e3
+;   24	#define p2	0.115302935154049e4
+;   25	#define p1	0.178040631643320e4
+;   26	#define p0	0.896785974036639e3
+;   27	#define q4	0.589569705084446e2
+;   28	#define q3	0.536265374031215e3
+;   29	#define q2	0.166678381488163e4
+;   30	#define q1	0.207933497444541e4
+;   31	#define q0	0.896785974036639e3
+;   32	
+;   33	
+;   34	/**
+;   35	 * atan makes its argument positive and
+;   36	 * calls the inner routine satan.
+;   37	 */
+;   38	
+;   39	double atan(double arg) {
+_atan:
+	CALL	__frameset0
+	OR	A,A
+;   40		double satan(double);
+;   41	
+;   42		if(arg>0) {
+	SBC	HL,HL
+	LD	E,0
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_1
+;   43			return(satan(arg));
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_satan
+	POP	BC
+	POP	BC
+	JR	L_2
+;   44		} else {
+L_1:
+;   45			return(-satan(-arg));
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_satan
+	POP	BC
+	POP	BC
+	LD	BC,HL
+	LD	A,E
+	CALL	__fneg
+	LD	E,A
+	LD	HL,BC
+;   46		}
+;   47	}
+L_2:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _atan ***************************
+;Name                         Addr/Register   Size   Type
+;_satan                              IMPORT  -----   function
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   48	
+;   49	
+;   50	/**
+;   51	 * atan2 discovers what quadrant the angle
+;   52	 * is in and calls atan.
+;   53	 */
+;   54	
+;   55	
+;   56	/**
+;   57	 * satan reduces its argument (known to be positive)
+;   58	 * to the range [0,0.414...] and calls xatan.
+;   59	 */
+;   60	
+;   61	double satan(double arg) {
+_satan:
+	LD	HL,-4
+	CALL	__frameset
+;   62		double	xatan(double);
+;   63	
+;   64		if(arg < sq2m1) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,13898701
+	LD	A,62
+	CALL	__fcmp
+	JP	P,L_6
+;   65			return(xatan(arg));
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_xatan
+	POP	BC
+	POP	BC
+	JR	L_7
+;   66		} else if(arg > sq2p1) {
+L_6:
+	LD	HL,1737338
+	LD	E,64
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_4
+;   67			return(pio2 - xatan(1.0/arg));
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_xatan
+	POP	BC
+	POP	BC
+	LD	BC,13176795
+	LD	A,63
+	CALL	__fsub
+	LD	E,A
+	LD	HL,BC
+	JR	L_7
+;   68		} else {
+L_4:
+;   69			return(pio4 + xatan((arg-1.0)/(arg+1.0)));
+	LD	HL,8388608
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fsub
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+	LD	A,(IX+9)
+	LD	BC,(IX+6)
+	LD	HL,8388608
+	LD	E,63
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_xatan
+	POP	BC
+	POP	BC
+	LD	BC,HL
+	LD	HL,4788187
+	LD	A,E
+	LD	E,63
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+;   70		}
+;   71	}
+L_7:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _satan ***************************
+;Name                         Addr/Register   Size   Type
+;_xatan                              IMPORT  -----   function
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 16 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   72	
+;   73	/**
+;   74	 * xatan evaluates a series valid in the
+;   75	 * range [-0.414...,+0.414...].
+;   76	 */
+;   77	
+;   78	static double xatan(double arg) {
+_xatan:
+	LD	HL,-8
+	CALL	__frameset
+;   79		double argsq;
+;   80		double value;
+;   81	
+;   82		argsq = arg*arg;
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fmul
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   83		value = ((((p4*argsq + p3)*argsq + p2)*argsq + p1)*argsq + p0);
+	LD	HL,8469160
+	LD	E,65
+	CALL	__fmul
+	LD	HL,8795766
+	LD	E,67
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,9445616
+	LD	E,68
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,14585089
+	LD	E,68
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,6304333
+	LD	E,68
+	CALL	__fadd
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   84		value = value/(((((argsq + q4)*argsq + q3)*argsq + q2)*argsq + q1)*argsq + q0);
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	LD	HL,7066608
+	LD	E,66
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,397564
+	LD	E,68
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,13654293
+	LD	E,68
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,128348
+	LD	E,69
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,6304333
+	LD	E,68
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	CALL	__fdiv
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   85		return(value*arg);
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	A,(IX+-5)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+;   86	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _xatan ***************************
+;Name                         Addr/Register   Size   Type
+;value                                 IX-8      4   variable
+;argsq                                 IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 20 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __frameset0:ROM
+	XREF __frameset:ROM
+	XDEF _satan
+	XDEF _atan
+	END

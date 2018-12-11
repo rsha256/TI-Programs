@@ -1,0 +1,802 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UPSCAN.C"
+	.assume ADL=1
+	SEGMENT TEXT
+_pscan_fsa:
+	DB	254
+	DB	254
+	DB	254
+	DB	254
+	DB	254
+	DB	1
+	DB	254
+	DB	254
+	DB	2
+	DB	3
+	DB	6
+	DB	4
+	DB	7
+	DB	8
+	DB	3
+	DB	254
+	DB	2
+	DB	3
+	DB	6
+	DB	4
+	DB	7
+	DB	254
+	DB	3
+	DB	254
+	DB	254
+	DB	3
+	DB	6
+	DB	4
+	DB	7
+	DB	254
+	DB	3
+	DB	254
+	DB	254
+	DB	5
+	DB	254
+	DB	254
+	DB	7
+	DB	254
+	DB	5
+	DB	254
+	DB	254
+	DB	5
+	DB	6
+	DB	254
+	DB	7
+	DB	254
+	DB	5
+	DB	254
+	DB	254
+	DB	254
+	DB	254
+	DB	254
+	DB	7
+	DB	254
+	DB	254
+	DB	254
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+	DB	255
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stdarg.h>
+;    7	#include <format.h>
+;    8	#include <ctype.h>
+;    9	#include <string.h>
+;   10	
+;   11	#define rom  // ez8 keyword
+;   12	
+;   13	/*  NOTE:                                                                     */
+;   14	/*     This code is duplicated in the optimizer to implement the  GENPRINTF   */
+;   15	/*     feature.  If you change this, merge the changes in to the optimizer    */
+;   16	/*     file genprintf.c too.!                                                 */
+;   17	
+;   18	/* classes */
+;   19	
+;   20	#define FLAGS 0
+;   21	#define DIGIT 1
+;   22	#define SIZE 2
+;   23	#define DOT 3
+;   24	#define TYPES 4
+;   25	#define PERCENT 5
+;   26	#define AST 6
+;   27	#define OTHER 7
+;   28	
+;   29	/* actions */
+;   30	
+;   31	#define ACC -1
+;   32	#define ERR -2
+;   33	
+;   34	#define CR 13
+;   35	#define LF 10
+;   36	
+;   37	#define TRUE 1
+;   38	#define FALSE 0
+;   39	
+;   40	/*
+;   41							    P
+;   42							    E
+;   43					F   D		T   R	   O
+;   44					L   I	S	Y   C	   T
+;   45					A   G	I   D	P   E	A  H
+;   46					G   I	Z   O	E   N	S  E
+;   47					S   T	E   T	S   T	T  R	*/
+;   48	static rom const char pscan_fsa[9][8] = {
+	SEGMENT CODE
+;   49			/* 0 */      {ERR,ERR,ERR,ERR,ERR,  1,ERR,ERR},
+;   50			/* 1 */      {	2,  3,	6,  4,	7,  8,	3,ERR},
+;   51			/* 2 */      {	2,  3,	6,  4,	7,ERR,	3,ERR},
+;   52			/* 3 */      {ERR,  3,	6,  4,	7,ERR,  3,ERR},
+;   53			/* 4 */      {ERR,  5,ERR,ERR,  7,ERR,	5,ERR},
+;   54			/* 5 */      {ERR,  5,	6,ERR,	7,ERR,  5,ERR},
+;   55			/* 6 */      {ERR,ERR,ERR,ERR,	7,ERR,ERR,ERR},
+;   56			/* 7 */      {ACC,ACC,ACC,ACC,ACC,ACC,ACC,ACC},
+;   57			/* 8 */      {ACC,ACC,ACC,ACC,ACC,ACC,ACC,ACC},
+;   58				     };
+;   59	
+;   60	/*************************************************
+;   61	*
+;   62	* _u_pscan - scan a printf format string
+;   63	*
+;   64	* Adopted from funtion of same name in target rtl
+;   65	*   pfmt  - pointer to format string to parse, advanced to a '%'
+;   66	*         - on return is advanced to first char past format spec
+;   67	*
+;   68	*   node- pointer to  the FCALL node, used for args
+;   69	*
+;   70	*   p_argnum - pointer to the index in node->sons[] of the next arg.
+;   71	*             (These count downward!)
+;   72	
+;   73	*
+;   74	*************************************************/
+;   75	char _PTR_ _u_pscan (char _PTR_ fmt,struct fmt_type _PTR_ str,va_list _PTR_ argp)
+;   76	{
+__u_pscan:
+	LD	HL,-11
+	CALL	__frameset
+;   77	  int pstate;
+;   78	  int state = 0;
+	LD	BC,0
+	LD	(IX+-7),BC
+;   79	  int class;
+;   80	  char ch;
+;   81	  unsigned char precision_given = FALSE;
+	LD	(IX+-8),0
+;   82	
+;   83	  str->flags = 0;
+	LD	IY,(IX+9)
+	LD	(IY+1),0
+;   84	  str->field_width = 0;
+	LD	(IY+5),0
+;   85	  str->precision = 0;
+	LD	(IY+6),0
+;   86	  str->size = 0;
+	LD	(IY+2),0
+;   87	  str->type = '\0';
+	LD	(IY+4),0
+;   88	
+;   89	  for(;;) {
+L_77:
+;   90	    ch = *(fmt++);
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	(IX+-1),A
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   91	    switch (ch) {
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	CALL	__case8
+L__0:
+	DW	35
+	DB	32
+	DW24	L_3	
+
+	DB	35
+	DW24	L_4	
+
+	DB	37
+	DW24	L_35	
+
+	DB	42
+	DW24	L_16	
+
+	DB	43
+	DW24	L_2	
+
+	DB	45
+	DW24	L_1	
+
+	DB	46
+	DW24	L_15	
+
+	DB	48
+	DW24	L_5	
+
+	DB	49
+	DW24	L_6	
+
+	DB	50
+	DW24	L_7	
+
+	DB	51
+	DW24	L_8	
+
+	DB	52
+	DW24	L_9	
+
+	DB	53
+	DW24	L_10	
+
+	DB	54
+	DW24	L_11	
+
+	DB	55
+	DW24	L_12	
+
+	DB	56
+	DW24	L_13	
+
+	DB	57
+	DW24	L_14	
+
+	DB	69
+	DW24	L_28	
+
+	DB	71
+	DW24	L_30	
+
+	DB	76
+	DW24	L_19	
+
+	DB	88
+	DW24	L_25	
+
+	DB	99
+	DW24	L_31	
+
+	DB	100
+	DW24	L_20	
+
+	DB	101
+	DW24	L_27	
+
+	DB	102
+	DW24	L_26	
+
+	DB	103
+	DW24	L_29	
+
+	DB	104
+	DW24	L_17	
+
+	DB	105
+	DW24	L_21	
+
+	DB	108
+	DW24	L_18	
+
+	DB	110
+	DW24	L_34	
+
+	DB	111
+	DW24	L_22	
+
+	DB	112
+	DW24	L_33	
+
+	DB	115
+	DW24	L_32	
+
+	DB	117
+	DW24	L_23	
+
+	DB	120
+	DW24	L_24	
+
+	DW24	L_36	
+
+;   92	      case '-':
+L_1:
+;   93	      case '+':
+L_2:
+;   94	      case ' ':
+L_3:
+;   95	      case '#':
+L_4:
+;   96			class = FLAGS;
+	LD	BC,0
+	LD	(IX+-4),BC
+;   97			break;
+	JR	L_37
+;   98	      case '0':
+L_5:
+;   99	      case '1':
+L_6:
+;  100	      case '2':
+L_7:
+;  101	      case '3':
+L_8:
+;  102	      case '4':
+L_9:
+;  103	      case '5':
+L_10:
+;  104	      case '6':
+L_11:
+;  105	      case '7':
+L_12:
+;  106	      case '8':
+L_13:
+;  107	      case '9':
+L_14:
+;  108			class = DIGIT;
+	LD	BC,1
+	LD	(IX+-4),BC
+;  109			break;
+	JR	L_37
+;  110	      case '.':
+L_15:
+;  111			class = DOT;
+	LD	BC,3
+	LD	(IX+-4),BC
+;  112			break;
+	JR	L_37
+;  113	      case '*':
+L_16:
+;  114			class = AST;
+	LD	BC,6
+	LD	(IX+-4),BC
+;  115			break;
+	JR	L_37
+;  116	      case 'h':
+L_17:
+;  117	      case 'l':
+L_18:
+;  118	      case 'L':
+L_19:
+;  119			class = SIZE;
+	LD	BC,2
+	LD	(IX+-4),BC
+;  120			break;
+	JR	L_37
+;  121	      case 'd':
+L_20:
+;  122	      case 'i':
+L_21:
+;  123	      case 'o':
+L_22:
+;  124	      case 'u':
+L_23:
+;  125	      case 'x':
+L_24:
+;  126	      case 'X':
+L_25:
+;  127	      case 'f':
+L_26:
+;  128	      case 'e':
+L_27:
+;  129	      case 'E':
+L_28:
+;  130	      case 'g':
+L_29:
+;  131	      case 'G':
+L_30:
+;  132	      case 'c':
+L_31:
+;  133	      case 's':
+L_32:
+;  134	      case 'p':
+L_33:
+;  135	      case 'n':
+L_34:
+;  136			class = TYPES;
+	LD	BC,4
+	LD	(IX+-4),BC
+;  137			break;
+	JR	L_37
+;  138	      case '%':
+L_35:
+;  139			class = PERCENT;
+	LD	BC,5
+	LD	(IX+-4),BC
+;  140			break;
+	JR	L_37
+;  141	
+;  142	      default:
+L_36:
+;  143			class = OTHER;
+	LD	BC,7
+	LD	(IX+-4),BC
+;  144			break;
+;  145	    }
+L_37:
+;  146	
+;  147	    pstate = state;
+	LD	BC,(IX+-7)
+	LD	(IX+-11),BC
+;  148	    state = pscan_fsa[state][class];
+	LD	HL,(IX+-7)
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	BC,_pscan_fsa
+	ADD	HL,BC
+	LD	BC,(IX+-4)
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	(IX+-7),HL
+;  149	
+;  150	    switch (state) {
+	CALL	__case24
+L__1:
+	DW	9
+	DW	2
+	DB	0
+	DW24	L_40	
+
+	DW	3
+	DB	0
+	DW24	L_46	
+
+	DW	4
+	DB	0
+	DW24	L_53	
+
+	DW	5
+	DB	0
+	DW24	L_54	
+
+	DW	6
+	DB	0
+	DW24	L_58	
+
+	DW	7
+	DB	0
+	DW24	L_59	
+
+	DW	8
+	DB	0
+	DW24	L_76	
+
+	DW	65534
+	DB	255
+	DW24	L_39	
+
+	DW	65535
+	DB	255
+	DW24	L_38	
+
+	DW24	L_77	
+
+;  151	      case ACC:
+L_38:
+;  152			str->status = FMT_OK;
+	LD	IY,(IX+9)
+	LD	(IY+0),0
+;  153			return(fmt-1);
+	LD	IY,(IX+6)
+	LEA	HL,IY+-1
+	JR	L_79
+;  154	      case ERR:
+L_39:
+;  155			str->status = FMT_ERR;
+	LD	IY,(IX+9)
+	LD	(IY+0),1
+;  156			return(fmt-1);
+	LD	IY,(IX+6)
+	LEA	HL,IY+-1
+	JR	L_79
+;  157	
+;  158	      case 2:
+L_40:
+;  159			switch (ch) {
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	CALL	__case8
+L__2:
+	DW	4
+	DB	32
+	DW24	L_43	
+
+	DB	35
+	DW24	L_44	
+
+	DB	43
+	DW24	L_42	
+
+	DB	45
+	DW24	L_41	
+
+	DW24	L_77	
+
+;  160	
+;  161			  case '-':
+L_41:
+;  162				str->flags |= FMT_FLAG_MINUS;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	0,A
+	LD	(IY+1),A
+;  163				break;
+	JR	L_77
+;  164			  case '+':
+L_42:
+;  165				str->flags |= FMT_FLAG_PLUS;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	1,A
+	LD	(IY+1),A
+;  166				break;
+	JR	L_77
+;  167			  case ' ':
+L_43:
+;  168				str->flags |= FMT_FLAG_SPACE;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	2,A
+	LD	(IY+1),A
+;  169				break;
+	JR	L_77
+;  170			  case '#':
+L_44:
+;  171				str->flags |= FMT_FLAG_POUND;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	3,A
+	LD	(IY+1),A
+;  172				break;
+	JR	L_77
+;  173			}
+;  174			break;
+;  175	
+;  176	      case 3:
+L_46:
+;  177			if (ch == '*')
+	LD	A,(IX+-1)
+	CP	A,42
+	JR	NZ,L_51
+;  178			  str->field_width = va_arg(*argp,int);
+	LD	HL,(IX+12)
+	LD	IY,(HL)
+	LEA	BC,IY+3
+	LD	HL,(IX+12)
+	LD	(HL),BC
+	LD	HL,(IX+12)
+	LD	IY,(HL)
+	LD	A,(IY+-3)
+	LD	IY,(IX+9)
+	LD	(IY+5),A
+;  179			else {
+	JR	L_77
+L_51:
+;  180			  if (pstate != state &&
+	LD	BC,(IX+-7)
+	LD	HL,(IX+-11)
+	OR	A,A
+	SBC	HL,BC
+	JR	Z,L_49
+;  181				ch == '0')
+	LD	A,(IX+-1)
+	CP	A,48
+	JR	NZ,L_49
+;  182			    str->flags |= FMT_FLAG_PAD_ZERO;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	6,A
+	LD	(IY+1),A
+L_49:
+;  183			  str->field_width = str->field_width * 10 + (ch - '0');
+	LD	IY,(IX+9)
+	LD	B,(IY+5)
+	LD	C,10
+	MLT	BC
+	LD	A,(IX+-1)
+	ADD	A,-48
+	LD	B,A
+	LD	A,C
+	ADD	A,B
+	LD	(IY+5),A
+;  184			}
+;  185			break;
+	JR	L_77
+;  186	      case 4:
+L_53:
+;  187			precision_given = TRUE;
+	LD	(IX+-8),1
+;  188			break;
+	JR	L_77
+;  189	      case 5:
+L_54:
+;  190			if (ch == '*')
+	LD	A,(IX+-1)
+	CP	A,42
+	JR	NZ,L_56
+;  191			  str->precision = va_arg(*argp,int);
+	LD	HL,(IX+12)
+	LD	IY,(HL)
+	LEA	BC,IY+3
+	LD	HL,(IX+12)
+	LD	(HL),BC
+	LD	HL,(IX+12)
+	LD	IY,(HL)
+	LD	A,(IY+-3)
+	LD	IY,(IX+9)
+	LD	(IY+6),A
+;  192			else
+	JR	L_77
+L_56:
+;  193			  str->precision = str->precision * 10 + (ch - '0');
+	LD	IY,(IX+9)
+	LD	B,(IY+6)
+	LD	C,10
+	MLT	BC
+	LD	A,(IX+-1)
+	ADD	A,-48
+	LD	B,A
+	LD	A,C
+	ADD	A,B
+	LD	(IY+6),A
+;  194			break;
+	JR	L_77
+;  195	      case 6:
+L_58:
+;  196			str->size = ch;
+	LD	A,(IX+-1)
+	LD	IY,(IX+9)
+	LD	(IY+2),A
+;  197			break;
+	JR	L_77
+;  198	      case 7:
+L_59:
+;  199			str->type = tolower(ch);
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_tolower
+	POP	BC
+	LD	IY,(IX+9)
+	LD	(IY+4),L
+;  200			if (isupper(ch))
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isupper
+	POP	BC
+	CALL	__icmpzero
+	JR	Z,L_62
+;  201			  str->flags |= FMT_FLAG_UPPERCASE;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	5,A
+	LD	(IY+1),A
+L_62:
+;  202			if (str->field_width < 0)
+	LD	IY,(IX+9)
+	LD	A,(IY+5)
+	OR	A,A
+	JP	P,L_71
+;  203			{
+;  204			  str->flags |= FMT_FLAG_MINUS;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	0,A
+	LD	(IY+1),A
+;  205			  str->field_width = -str->field_width;
+	LD	A,(IY+5)
+	NEG	
+	LD	(IY+5),A
+;  206			}
+L_71:
+;  207			if (!precision_given || str->precision < 0)
+	LD	A,(IX+-8)
+	OR	A,A
+	JR	Z,L_70
+	LD	IY,(IX+9)
+	LD	A,(IY+6)
+	OR	A,A
+	JP	P,L_74
+L_70:
+;  208			{
+;  209			  if (ch == 'e' ||
+	LD	A,(IX+-1)
+	CP	A,101
+	JR	Z,L_68
+;  210			      ch == 'E' ||
+	LD	A,(IX+-1)
+	CP	A,69
+	JR	Z,L_68
+;  211			      ch == 'g' ||
+	LD	A,(IX+-1)
+	CP	A,103
+	JR	Z,L_68
+;  212			      ch == 'G' ||
+	LD	A,(IX+-1)
+	CP	A,71
+	JR	Z,L_68
+;  213			      ch == 'f')
+	LD	A,(IX+-1)
+	CP	A,102
+	JR	NZ,L_69
+L_68:
+;  214			    str->precision = DEFAULT_PRECISION;
+	LD	IY,(IX+9)
+	LD	(IY+6),6
+;  215			  else
+	JR	L_74
+L_69:
+;  216			    str->precision = 0;
+	LD	IY,(IX+9)
+	LD	(IY+6),0
+;  217			}
+L_74:
+;  218	                if (ch == 's' && precision_given)
+	LD	A,(IX+-1)
+	CP	A,115
+	JR	NZ,L_77
+	LD	A,(IX+-8)
+	OR	A,A
+	JR	Z,L_77
+;  219			  str->flags |= FMT_FLAG_PRECISION;
+	LD	IY,(IX+9)
+	LD	A,(IY+1)
+	SET	4,A
+	LD	(IY+1),A
+;  220			break;
+	JR	L_77
+;  221	      case 8:
+L_76:
+;  222			str->status = FMT_PASS_THRU;
+	LD	IY,(IX+9)
+	LD	(IY+0),2
+;  223			str->chr = ch;
+	LD	A,(IX+-1)
+	LD	(IY+3),A
+;  224			return(fmt);
+	LD	HL,(IX+6)
+;  225	    }
+;  226	  }
+;  227	}
+L_79:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_pscan ***************************
+;Name                         Addr/Register   Size   Type
+;_isupper                            IMPORT  -----   function
+;_tolower                            IMPORT  -----   function
+;_pscan_fsa                          STATIC     72   variable
+;pstate                               IX-11      3   variable
+;precision_given                       IX-8      1   variable
+;state                                 IX-7      3   variable
+;class                                 IX-4      3   variable
+;ch                                    IX-1      1   variable
+;argp                                 IX+12      3   parameter
+;str                                   IX+9      3   parameter
+;fmt                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 26 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _tolower:ROM
+	XREF _isupper:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XREF __case24:ROM
+	XREF __case8:ROM
+	XDEF __u_pscan
+	END

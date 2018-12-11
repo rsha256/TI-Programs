@@ -1,0 +1,207 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/* Keep these headers */
+;    2	#include <stdbool.h>
+;    3	#include <stddef.h>
+;    4	#include <stdint.h>
+;    5	#include <tice.h>
+;    6	
+;    7	/* Standard headers */
+;    8	#include <math.h>
+;    9	#include <stdio.h>
+;   10	#include <stdlib.h>
+;   11	#include <string.h>
+;   12	
+;   13	/* Put function prototypes here */
+;   14	void printText(const char *text, uint8_t x, uint8_t y);
+;   15	void printTextSmall(const char *text, uint8_t xpos, uint8_t ypos);
+;   16	
+;   17	/* Put all your code here */
+;   18	void main(void) {
+_main:
+	LD	HL,-6
+	CALL	__frameset
+;   19	    /* uint8_t is an unsigned integer that can range from 0-255. */
+;   20	    /* It performs faster than just an int, so try to use it (or int8_t) when possible */
+;   21	    uint8_t count;
+;   22	
+;   23	    /* Initialize some strings */
+;   24	    const char *HelloWorld = "Hello World!";
+	LD	BC,L__0
+	LD	(IX+-3),BC
+;   25	    const char *Welcome = "Welcome to C!";
+	LD	BC,L__1
+	LD	(IX+-6),BC
+;   26	
+;   27	    /* Clear the homescreen */
+;   28	    os_ClrHome();
+	LD	BC,_asm_ClrLCD
+	PUSH	BC
+	CALL	__OS
+	POP	BC
+	LD	BC,_asm_HomeUp
+	PUSH	BC
+	CALL	__OS
+	POP	BC
+	LD	BC,_asm_DrawStatusBar
+	PUSH	BC
+	CALL	__OS
+	POP	BC
+;   29	
+;   30	    /* Print a few strings */
+;   31	    printText(HelloWorld, 0, 0);
+	LD	BC,0
+	PUSH	BC
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_printText
+	POP	BC
+	POP	BC
+	POP	BC
+;   32	    printText(Welcome, 0, 1);
+	LD	BC,1
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	BC,(IX+-6)
+	PUSH	BC
+	CALL	_printText
+	POP	BC
+	POP	BC
+	POP	BC
+;   33	
+;   34	    /* Wait for a key press */
+;   35	    while (!os_GetCSC());
+L_4:
+	CALL	_os_GetCSC
+	OR	A,A
+	JR	Z,L_4
+;   36	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_os_GetCSC                          IMPORT  -----   function
+;_printText                          IMPORT  -----   function
+;_asm_DrawStatusBar                  IMPORT  -----   function
+;_asm_HomeUp                         IMPORT  -----   function
+;_asm_ClrLCD                         IMPORT  -----   function
+;__OS                                IMPORT  -----   function
+;Welcome                               IX-6      3   variable
+;HelloWorld                            IX-3      3   variable
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT STRSECT
+L__0:
+	DB	"Hello World!"
+	DB	0
+L__1:
+	DB	"Welcome to C!"
+	DB	0
+	SEGMENT CODE
+;   37	
+;   38	/* Draw text on the homescreen at the given X/Y location */
+;   39	void printText(const char *text, uint8_t xpos, uint8_t ypos) {
+_printText:
+	CALL	__frameset0
+;   40	    os_SetCursorPos(ypos, xpos);
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+12)
+	PUSH	BC
+	CALL	_os_SetCursorPos
+	POP	BC
+	POP	BC
+;   41	    os_PutStrFull(text);
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_os_PutStrFull
+	POP	BC
+;   42	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _printText ***************************
+;Name                         Addr/Register   Size   Type
+;_os_PutStrFull                      IMPORT  -----   function
+;_os_SetCursorPos                    IMPORT  -----   function
+;ypos                                 IX+12      1   parameter
+;xpos                                  IX+9      1   parameter
+;text                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   43	
+;   44	/* Draw small text at the given X/Y location */
+;   45	void printTextSmall(const char *text, uint8_t xpos, uint8_t ypos) {
+_printTextSmall:
+	CALL	__frameset0
+;   46	    os_FontSelect(0); // sets small font (1 == big, see docs)
+	LD	BC,0
+	PUSH	BC
+	CALL	_os_FontSelect
+	POP	BC
+;   47	    os_FontDrawText(text, xpos, ypos);
+	LD	C,(IX+12)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_os_FontDrawText
+	POP	BC
+	POP	BC
+	POP	BC
+;   48	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _printTextSmall ***************************
+;Name                         Addr/Register   Size   Type
+;_os_FontDrawText                    IMPORT  -----   function
+;_os_FontSelect                      IMPORT  -----   function
+;ypos                                 IX+12      1   parameter
+;xpos                                  IX+9      1   parameter
+;text                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _asm_DrawStatusBar:ROM
+	XREF _asm_ClrLCD:ROM
+	XREF _asm_HomeUp:ROM
+	XREF __OS:ROM
+	XREF _os_GetCSC:ROM
+	XREF _os_PutStrFull:ROM
+	XREF _os_FontDrawText:ROM
+	XREF _os_FontSelect:ROM
+	XREF _os_SetCursorPos:ROM
+	XREF __frameset0:ROM
+	XREF __frameset:ROM
+	XDEF _printTextSmall
+	XDEF _printText
+	XDEF _main
+	END

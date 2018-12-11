@@ -1,0 +1,1822 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\USCAN.C"
+	.assume ADL=1
+	SEGMENT BSS
+_bptr:
+	DS	3
+_argp:
+	DS	3
+_len:
+	DS	3
+_fields:
+	DS	1
+_fmt_str:
+	DS	19
+_prev_ch:
+	DS	3
+_isunget:
+	DS	1
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	/*************************************************************************
+;    7	 * We now assume that the maximum number of fields processed in a format
+;    8	 * string is 255.  Then, we can fit the field count into a char, for a
+;    9	 * slight saving in space and time. <THH>
+;   10	 *************************************************************************/
+;   11	
+;   12	#include <stdlib.h>
+;   13	#include <stdio.h>
+;   14	#include <stddef.h>
+;   15	#include <ctype.h>
+;   16	#include <stdarg.h>
+;   17	#include <format.h>
+;   18	#include <float.h>
+;   19	#include <string.h>
+;   20	
+;   21	/*  Sizes allowed for various data */
+;   22	#define FLT_CHARS 127
+;   23	#define PTR_CHARS 127
+;   24	#define INT_CHARS 127
+;   25	
+;   26	static char *bptr;
+;   27	static va_list argp;
+;   28	static int len;
+;   29	static unsigned char fields;
+;   30	static struct fmt_type fmt_str;
+;   31	static int prev_ch;
+;   32	static char isunget;
+	SEGMENT CODE
+;   33	
+;   34	int getchar(void);
+;   35	
+;   36	/****************************************/
+;   37	/* get a character
+;   38	/****************************************/
+;   39	static int get(void)
+;   40	{
+_get:
+	LD	HL,-3
+	CALL	__frameset
+;   41	  ++len;
+	LD	BC,(_len)
+	INC	BC
+	LD	(_len),BC
+;   42	  if (bptr)
+	LD	HL,(_bptr)
+	CALL	__icmpzero
+	JR	Z,L_3
+;   43	    return(*(bptr++));
+	LD	BC,(_bptr)
+	LD	(IX+-3),BC
+	LD	BC,(_bptr)
+	INC	BC
+	LD	(_bptr),BC
+	LD	HL,(IX+-3)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	JR	L_5
+;   44	  else if (isunget==1) {
+L_3:
+	LD	A,(_isunget)
+	CP	A,1
+	JR	NZ,L_4
+;   45	    	isunget = 0;
+	XOR	A,A
+	LD	(_isunget),A
+;   46			return prev_ch;	
+	LD	HL,(_prev_ch)
+	JR	L_5
+;   47	  }
+L_4:
+;   48	  return(prev_ch = getchar());
+	CALL	_getchar
+	LD	(_prev_ch),HL
+;   49	}
+L_5:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _get ***************************
+;Name                         Addr/Register   Size   Type
+;_getchar                            IMPORT  -----   function
+;_prev_ch                            STATIC      3   variable
+;_isunget                            STATIC      1   variable
+;_bptr                               STATIC      3   variable
+;_len                                STATIC      3   variable
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   50	
+;   51	/****************************************/
+;   52	/* unget a character
+;   53	/****************************************/
+;   54	static void unget(void) {
+_unget:
+;   55	  --len;
+	LD	BC,(_len)
+	DEC	BC
+	LD	(_len),BC
+;   56	  isunget = 1;
+	LD	A,1
+	LD	(_isunget),A
+;   57	  if (bptr)
+	LD	HL,(_bptr)
+	CALL	__icmpzero
+	JR	Z,L_7
+;   58	    --bptr; 
+	LD	IY,(_bptr)
+	LEA	BC,IY+-1
+	LD	(_bptr),BC
+;   59	}
+L_7:
+	RET	
+
+
+;**************************** _unget ***************************
+;Name                         Addr/Register   Size   Type
+;_bptr                               STATIC      3   variable
+;_isunget                            STATIC      1   variable
+;_len                                STATIC      3   variable
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   60	
+;   61	/****************************************/
+;   62	/* Handle pointer conversions
+;   63	/****************************************/
+;   64	static unsigned char pointer(void)
+;   65	{
+_pointer:
+	LD	HL,-138
+	CALL	__frameset
+;   66	  unsigned char i;
+;   67	  char ch;
+;   68	  char buffer[PTR_CHARS];
+;   69	  char *bp = buffer;
+	LD	HL,IX
+	LD	BC,-135
+	ADD	HL,BC
+	LD	(IX+-5),HL
+;   70	  unsigned int addr;
+;   71	
+;   72	  if (fmt_str.field_width == 0 || fmt_str.field_width > sizeof(buffer)-1)
+	LD	A,(_fmt_str+5)
+	OR	A,A
+	JR	Z,L_9
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	HL,126
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_11
+L_9:
+;   73	    fmt_str.field_width = sizeof(buffer)-1;
+	LD	A,126
+	LD	(_fmt_str+5),A
+L_11:
+;   74	  if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-2),L
+	LD	A,(IX+-2)
+	CP	A,-1
+	JR	NZ,L_20
+;   75	    return FALSE;
+	XOR	A,A
+	JR	L_28
+L_20:
+;   76	  for (i=0;isxdigit(ch);) {
+	LD	(IX+-1),0
+	JR	L_19
+L_17:
+;   77	    *(bp++) = ch;
+	LD	BC,(IX+-5)
+	LEA	IY,IX+-128
+	LD	(IY+-10),BC
+	LD	HL,(IY+-10)
+	LD	A,(IX+-2)
+	LD	(HL),A
+	LD	BC,(IX+-5)
+	INC	BC
+	LD	(IX+-5),BC
+;   78	    i++;
+	INC	(IX+-1)
+;   79	    if (i >= fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	P,L_22
+;   80	      break;
+;   81	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-2),L
+	LD	A,(IX+-2)
+	CP	A,-1
+	JR	NZ,L_19
+;   82	      return FALSE;
+	XOR	A,A
+	JR	L_28
+;   83	  }
+L_19:
+	LD	A,(IX+-2)
+	SEXT	HL
+	LD	L,(IX+-2)
+	PUSH	HL
+	CALL	_isxdigit
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_17
+L_22:
+;   84	  if (bp == buffer)
+	LD	HL,IX
+	LD	BC,-135
+	ADD	HL,BC
+	OR	A,A
+	LD	BC,(IX+-5)
+	SBC	HL,BC
+	JR	NZ,L_24
+;   85	    return FALSE;
+	XOR	A,A
+	JR	L_28
+L_24:
+;   86	  if (i < fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_25
+;   87	    unget();
+	CALL	_unget
+L_25:
+;   88	  *bp = '\0';
+	LD	IY,(IX+-5)
+;   89	  addr = strtoul(buffer,(void *)NULL,16);
+	LD	BC,16
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	HL,IX
+	LD	BC,-135
+	ADD	HL,BC
+	LD	BC,HL
+	PUSH	BC
+	LD	(IY),0
+	CALL	_strtoul
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-8),HL
+;   90	
+;   91	  if (!(fmt_str.flags & FMT_FLAG_IGNORE))
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_27
+;   92	  {
+;   93	    *(va_arg(argp, int**)) = (int*)addr;
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	HL,(HL)
+	LD	BC,(IX+-8)
+	LD	(HL),BC
+;   94	    ++fields;
+	LD	A,(_fields)
+	INC	A
+	LD	(_fields),A
+;   95	  }
+L_27:
+;   96	
+;   97	  return TRUE;
+	LD	A,1
+;   98	}
+L_28:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _pointer ***************************
+;Name                         Addr/Register   Size   Type
+;_fields                             STATIC      1   variable
+;_argp                               STATIC      3   variable
+;_strtoul                            IMPORT  -----   function
+;_isxdigit                           IMPORT  -----   function
+;_fmt_str                            STATIC     19   variable
+;buffer                              IX-135    127   variable
+;addr                                  IX-8      3   variable
+;bp                                    IX-5      3   variable
+;ch                                    IX-2      1   variable
+;i                                     IX-1      1   variable
+
+
+; Stack Frame Size: 144 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   99	
+;  100	/****************************************/
+;  101	/* Handle string conversions
+;  102	/****************************************/
+;  103	static unsigned char string(void)
+;  104	{
+_string:
+	LD	HL,-8
+	CALL	__frameset
+;  105	  unsigned char i;
+;  106	  char ch;
+;  107	  char *p = NULL;
+	LD	BC,0
+	LD	(IX+-5),BC
+;  108	
+;  109	  if (!(fmt_str.flags & FMT_FLAG_IGNORE))
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_31
+;  110	     p = va_arg(argp, char*);
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	BC,(HL)
+	LD	(IX+-5),BC
+L_31:
+;  111	  if (fmt_str.field_width == 0)
+	LD	A,(_fmt_str+5)
+	OR	A,A
+	JR	NZ,L_33
+;  112	    fmt_str.field_width = 127;
+	LD	A,127
+	LD	(_fmt_str+5),A
+;  113	  do {
+L_33:
+;  114	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_34
+;  115	      return FALSE;
+	XOR	A,A
+	JR	L_55
+;  116	  } while (isspace(ch));
+L_34:
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_33
+;  117	  unget();
+	CALL	_unget
+;  118	  if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_49
+;  119	    return FALSE;
+	XOR	A,A
+	JR	L_55
+L_49:
+;  120	  for (i=0; !isspace(ch) && ch;) {
+	LD	(IX+-2),0
+	JR	L_48
+L_46:
+;  121	    if (p)
+	LD	HL,(IX+-5)
+	CALL	__icmpzero
+	JR	Z,L_42
+;  122	      *(p++) = ch;
+	LD	BC,(IX+-5)
+	LD	(IX+-8),BC
+	LD	HL,BC
+	LD	A,(IX+-1)
+	LD	(HL),A
+	LD	BC,(IX+-5)
+	INC	BC
+	LD	(IX+-5),BC
+L_42:
+;  123	    i++;
+	INC	(IX+-2)
+;  124	    if (i >= fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	P,L_51
+;  125	      break;
+;  126	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_48
+;  127	      return FALSE;
+	XOR	A,A
+	JR	L_55
+;  128	  }
+L_48:
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_51
+	LD	A,(IX+-1)
+	OR	A,A
+	JR	NZ,L_46
+L_51:
+;  129	  if (i < fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	P,L_53
+;  130	    unget();
+	CALL	_unget
+L_53:
+;  131	  if (p)
+	LD	HL,(IX+-5)
+	CALL	__icmpzero
+	JR	Z,L_54
+;  132	  {
+;  133	    *p = '\0';
+	LD	HL,(IX+-5)
+	LD	(HL),0
+;  134	    ++fields;
+	LD	A,(_fields)
+	INC	A
+	LD	(_fields),A
+;  135	  }
+L_54:
+;  136	  return TRUE;
+	LD	A,1
+;  137	}
+L_55:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _string ***************************
+;Name                         Addr/Register   Size   Type
+;_fields                             STATIC      1   variable
+;_isspace                            IMPORT  -----   function
+;_argp                               STATIC      3   variable
+;_fmt_str                            STATIC     19   variable
+;p                                     IX-5      3   variable
+;i                                     IX-2      1   variable
+;ch                                    IX-1      1   variable
+
+
+; Stack Frame Size: 14 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  138	
+;  139	/****************************************/
+;  140	/* Handle character conversions
+;  141	/****************************************/
+;  142	static unsigned char character(void)
+;  143	{
+_character:
+	LD	HL,-8
+	CALL	__frameset
+;  144	  unsigned char i;
+;  145	  char ch;
+;  146	  char *p=NULL;
+	LD	BC,0
+	LD	(IX+-4),BC
+;  147	
+;  148	  if (!(fmt_str.flags & FMT_FLAG_IGNORE))
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_58
+;  149	    p = va_arg(argp,char*);
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	BC,(HL)
+	LD	(IX+-4),BC
+L_58:
+;  150	  if (fmt_str.field_width == 0)
+	LD	A,(_fmt_str+5)
+	OR	A,A
+	JR	NZ,L_67
+;  151	    fmt_str.field_width = 1;
+	LD	A,1
+	LD	(_fmt_str+5),A
+L_67:
+;  152	  for (i=0;i<fmt_str.field_width;++i)
+	LD	(IX+-1),0
+	JR	L_66
+L_64:
+;  153	  {
+;  154	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-5),L
+	LD	A,(IX+-5)
+	CP	A,-1
+	JR	NZ,L_62
+;  155	      return FALSE;
+	XOR	A,A
+	JR	L_69
+L_62:
+;  156	    if (p)
+	LD	HL,(IX+-4)
+	CALL	__icmpzero
+	JR	Z,L_63
+;  157	      *(p++) = ch;
+	LD	BC,(IX+-4)
+	LD	(IX+-8),BC
+	LD	HL,BC
+	LD	A,(IX+-5)
+	LD	(HL),A
+	LD	BC,(IX+-4)
+	INC	BC
+	LD	(IX+-4),BC
+L_63:
+;  158	    ++fields;
+	LD	A,(_fields)
+	INC	A
+	LD	(_fields),A
+	INC	(IX+-1)
+;  159	  }
+L_66:
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_64
+;  160	  return TRUE;
+	LD	A,1
+;  161	}
+L_69:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _character ***************************
+;Name                         Addr/Register   Size   Type
+;_fields                             STATIC      1   variable
+;_argp                               STATIC      3   variable
+;_fmt_str                            STATIC     19   variable
+;ch                                    IX-5      1   variable
+;p                                     IX-4      3   variable
+;i                                     IX-1      1   variable
+
+
+; Stack Frame Size: 14 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  162	
+;  163	/****************************************/
+;  164	/* Floating point conversions
+;  165	/****************************************/
+;  166	static unsigned char fpoint(void)
+;  167	{
+_fpoint:
+	LD	HL,-142
+	CALL	__frameset
+;  168	  unsigned char i;
+;  169	  char ch;
+;  170	  char buffer[FLT_CHARS];
+;  171	  char *bp = buffer;
+	LD	HL,IX
+	LD	BC,-139
+	ADD	HL,BC
+	LD	(IX+-5),HL
+;  172	  double dval;
+;  173	  unsigned char takeEe=TRUE;
+	LD	(IX+-8),1
+;  174	  unsigned char takeDot=TRUE;
+	LD	(IX+-6),1
+;  175	  unsigned char takeSign=TRUE;
+	LD	(IX+-7),1
+;  176	
+;  177	  if (fmt_str.field_width == 0 || fmt_str.field_width > sizeof(buffer)-1)
+	LD	A,(_fmt_str+5)
+	OR	A,A
+	JR	Z,L_71
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	HL,126
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_73
+L_71:
+;  178	    fmt_str.field_width = sizeof(buffer)-1;
+	LD	A,126
+	LD	(_fmt_str+5),A
+;  179	  do {
+L_73:
+;  180	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_74
+;  181	      return FALSE;
+	XOR	A,A
+	JR	L_102
+;  182	  } while (isspace(ch));
+L_74:
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_73
+;  183	
+;  184	  for (i=0; i < fmt_str.field_width; ++i)
+	LD	(IX+-2),0
+	JR	L_93
+L_91:
+;  185	  {
+;  186	    if (takeEe && (ch == 'e' || ch == 'E'))
+	LD	A,(IX+-8)
+	OR	A,A
+	JR	Z,L_87
+	LD	A,(IX+-1)
+	CP	A,101
+	JR	Z,L_86
+	LD	A,(IX+-1)
+	CP	A,69
+	JR	NZ,L_87
+L_86:
+;  187	    {
+;  188	       takeEe = FALSE;
+	LD	(IX+-8),0
+;  189	       takeSign=TRUE;
+	LD	(IX+-7),1
+;  190	       takeDot=FALSE;
+	LD	(IX+-6),0
+;  191	    } else
+	JR	L_89
+L_87:
+;  192	    if (takeDot && ch=='.')
+	LD	A,(IX+-6)
+	OR	A,A
+	JR	Z,L_85
+	LD	A,(IX+-1)
+	CP	A,46
+	JR	NZ,L_85
+;  193	    {
+;  194	      takeDot=FALSE;
+	LD	(IX+-6),0
+;  195	    } else
+	JR	L_89
+L_85:
+;  196	    if (   (takeSign && (ch == '-' || ch == '+'))
+	LD	A,(IX+-7)
+	OR	A,A
+	JR	Z,L_81
+	LD	A,(IX+-1)
+	CP	A,45
+	JR	Z,L_82
+	LD	A,(IX+-1)
+	CP	A,43
+	JR	Z,L_82
+;  197	       ||  isdigit(ch) )
+L_81:
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isdigit
+	POP	BC
+	CALL	__icmpzero
+	JR	Z,L_96
+L_82:
+;  198	    {
+;  199	        takeSign = FALSE;
+	LD	(IX+-7),0
+;  200	    } else
+;  201	    {
+;  202	        break;
+;  203	    }
+L_89:
+;  204	    *(bp++) = ch;
+	LD	BC,(IX+-5)
+	LEA	IY,IX+-128
+	LD	(IY+-14),BC
+	LD	HL,(IY+-14)
+	LD	A,(IX+-1)
+	LD	(HL),A
+	LD	BC,(IX+-5)
+	INC	BC
+	LD	(IX+-5),BC
+;  205	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_92
+;  206	      return FALSE;
+	XOR	A,A
+	JR	L_102
+;  207	  }
+L_92:
+	INC	(IX+-2)
+L_93:
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_91
+L_96:
+;  208	  if (bp == buffer)
+	LD	HL,IX
+	LD	BC,-139
+	ADD	HL,BC
+	OR	A,A
+	LD	BC,(IX+-5)
+	SBC	HL,BC
+	JR	NZ,L_98
+;  209	    return(fields);
+	LD	A,(_fields)
+	JR	L_102
+L_98:
+;  210	  if (i < fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_99
+;  211	    unget();
+	CALL	_unget
+L_99:
+;  212	  *bp = '\0';
+	LD	IY,(IX+-5)
+;  213	  dval = strtod(buffer,NULL);
+	LD	BC,0
+	PUSH	BC
+	LD	HL,IX
+	LD	BC,-139
+	ADD	HL,BC
+	LD	BC,HL
+	PUSH	BC
+	LD	(IY),0
+	CALL	_strtod
+	POP	BC
+	POP	BC
+	LD	(IX+-12),HL
+	LD	(IX+-9),E
+;  214	
+;  215	  if (!(fmt_str.flags & FMT_FLAG_IGNORE)) {
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_101
+;  216	    *(va_arg(argp, float*)) = dval;
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	HL,(HL)
+	LD	BC,(IX+-12)
+	LD	A,(IX+-9)
+	LD	(HL),BC
+	INC	HL
+	INC	HL
+	INC	HL
+	LD	(HL),A
+;  217	    ++fields;
+	LD	A,(_fields)
+	INC	A
+	LD	(_fields),A
+;  218	  }
+L_101:
+;  219	
+;  220	  return TRUE;
+	LD	A,1
+;  221	}
+L_102:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fpoint ***************************
+;Name                         Addr/Register   Size   Type
+;_argp                               STATIC      3   variable
+;_strtod                             IMPORT  -----   function
+;_fields                             STATIC      1   variable
+;_isdigit                            IMPORT  -----   function
+;_isspace                            IMPORT  -----   function
+;_fmt_str                            STATIC     19   variable
+;buffer                              IX-139    127   variable
+;dval                                 IX-12      4   variable
+;takeEe                                IX-8      1   variable
+;takeSign                              IX-7      1   variable
+;takeDot                               IX-6      1   variable
+;bp                                    IX-5      3   variable
+;i                                     IX-2      1   variable
+;ch                                    IX-1      1   variable
+
+
+; Stack Frame Size: 148 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  222	
+;  223	/****************************************/
+;  224	/* Handle scalar conversions
+;  225	/****************************************/
+;  226	#ifndef _MULTI_THREAD
+;  227	static unsigned char scalar(int radix)
+;  228	#else
+;  229	static unsigned char scalar(va_list argp,int len,unsigned char fields,struct fmt_type fmt_str,int prev_ch,char isunget,int radix)
+;  230	#endif
+;  231	{
+_scalar:
+	LD	HL,-139
+	CALL	__frameset
+;  232	  unsigned char i;
+;  233	  char ch;
+;  234	  char buffer[INT_CHARS];
+;  235	  char *bp = buffer;
+	LD	HL,IX
+	LD	BC,-136
+	ADD	HL,BC
+	LD	(IX+-5),HL
+;  236	  long val;
+;  237	
+;  238	  if (fmt_str.field_width == 0 || fmt_str.field_width > sizeof(buffer)-1)
+	LD	A,(_fmt_str+5)
+	OR	A,A
+	JR	Z,L_104
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	HL,126
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_106
+L_104:
+;  239	    fmt_str.field_width = sizeof(buffer)-1;
+	LD	A,126
+	LD	(_fmt_str+5),A
+;  240	  do {
+L_106:
+;  241	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_107
+;  242	      return FALSE;
+	XOR	A,A
+	JR	L_146
+;  243	  } while (isspace(ch));
+L_107:
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_106
+;  244	  unget();
+	CALL	_unget
+;  245	  if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_127
+;  246	    return FALSE;
+	XOR	A,A
+	JR	L_146
+L_127:
+;  247	  for (i=0;radix == 10 && isdigit(ch) ||
+	LD	(IX+-2),0
+	JR	L_126
+;  248		   radix == 16 && isxdigit(ch) ||
+;  249		   radix == 8 && ch >= '0' && ch <= '7' ||
+;  250		   ch == '-' ||
+;  251		   ch == '+';) {
+L_124:
+;  252	    *(bp++) = ch;
+	LD	BC,(IX+-5)
+	LEA	IY,IX+-128
+	LD	(IY+-11),BC
+	LD	HL,(IY+-11)
+	LD	A,(IX+-1)
+	LD	(HL),A
+	LD	BC,(IX+-5)
+	INC	BC
+	LD	(IX+-5),BC
+;  253	    i++;
+	INC	(IX+-2)
+;  254	    if (i >= fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	P,L_129
+;  255	      break;
+;  256	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-1),L
+	LD	A,(IX+-1)
+	CP	A,-1
+	JR	NZ,L_126
+;  257	      return FALSE;
+	XOR	A,A
+	JR	L_146
+;  258	  }
+L_126:
+	LD	BC,10
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_113
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isdigit
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_124
+L_113:
+	LD	BC,16
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_116
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	PUSH	HL
+	CALL	_isxdigit
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_124
+L_116:
+	LD	BC,8
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_117
+	LD	A,(IX+-1)
+	CP	A,48
+	CALL	__setflag
+	JP	M,L_117
+	LD	A,55
+	CP	A,(IX+-1)
+	CALL	__setflag
+	JP	P,L_124
+L_117:
+	LD	A,(IX+-1)
+	CP	A,45
+	JR	Z,L_124
+	LD	A,(IX+-1)
+	CP	A,43
+	JR	Z,L_124
+L_129:
+;  259	  if (bp == buffer)
+	LD	HL,IX
+	LD	BC,-136
+	ADD	HL,BC
+	OR	A,A
+	LD	BC,(IX+-5)
+	SBC	HL,BC
+	JR	NZ,L_131
+;  260	    return(fields);
+	LD	A,(_fields)
+	JR	L_146
+L_131:
+;  261	  if (i < fmt_str.field_width)
+	LD	A,(_fmt_str+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_132
+;  262	    unget();
+	CALL	_unget
+L_132:
+;  263	  *bp = '\0';
+	LD	HL,(IX+-5)
+	LD	(HL),0
+;  264	  if ((fmt_str.type == 'u') || (radix == 8) || (radix == 16))
+	LD	A,(_fmt_str+4)
+	CP	A,117
+	JR	Z,L_135
+	LD	BC,8
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	Z,L_135
+	LD	BC,16
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_136
+L_135:
+;  265	    val = strtoul(buffer,(void*)NULL,radix);
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	HL,IX
+	LD	BC,-136
+	ADD	HL,BC
+	LD	BC,HL
+	PUSH	BC
+	CALL	_strtoul
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-9),HL
+	LD	(IX+-6),E
+;  266	  else
+	JR	L_144
+L_136:
+;  267	    val = strtol(buffer,(void*)NULL,radix);
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	HL,IX
+	LD	BC,-136
+	ADD	HL,BC
+	LD	BC,HL
+	PUSH	BC
+	CALL	_strtol
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-9),HL
+	LD	(IX+-6),E
+L_144:
+;  268	
+;  269	  if (!(fmt_str.flags & FMT_FLAG_IGNORE)) {
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_145
+;  270	    if (fmt_str.size == 'h')
+	LD	A,(_fmt_str+2)
+	CP	A,104
+	JR	NZ,L_141
+;  271	      *(va_arg(argp,short*)) = val;
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	HL,(HL)
+	LD	BC,(IX+-9)
+	LD	(HL),C
+	INC	HL
+	LD	(HL),B
+;  272	    else if (fmt_str.size == 'l' || fmt_str.size == 'L')
+	JR	L_142
+L_141:
+	LD	A,(_fmt_str+2)
+	CP	A,108
+	JR	Z,L_138
+	LD	A,(_fmt_str+2)
+	CP	A,76
+	JR	NZ,L_139
+L_138:
+;  273	      *(va_arg(argp,long*)) = val;
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	HL,(HL)
+	LD	BC,(IX+-9)
+	LD	A,(IX+-6)
+	LD	(HL),BC
+	INC	HL
+	INC	HL
+	INC	HL
+	LD	(HL),A
+;  274	    else
+	JR	L_142
+L_139:
+;  275	      *(va_arg(argp,int*)) = val;
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	HL,(HL)
+	LD	BC,(IX+-9)
+	LD	(HL),BC
+L_142:
+;  276	    ++fields;
+	LD	A,(_fields)
+	INC	A
+	LD	(_fields),A
+;  277	  }
+L_145:
+;  278	
+;  279	  return TRUE;
+	LD	A,1
+;  280	}
+L_146:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _scalar ***************************
+;Name                         Addr/Register   Size   Type
+;_argp                               STATIC      3   variable
+;_strtol                             IMPORT  -----   function
+;_strtoul                            IMPORT  -----   function
+;_fields                             STATIC      1   variable
+;_isxdigit                           IMPORT  -----   function
+;_isdigit                            IMPORT  -----   function
+;_isspace                            IMPORT  -----   function
+;_fmt_str                            STATIC     19   variable
+;buffer                              IX-136    127   variable
+;val                                   IX-9      4   variable
+;bp                                    IX-5      3   variable
+;i                                     IX-2      1   variable
+;ch                                    IX-1      1   variable
+;radix                                 IX+6      3   parameter
+
+
+; Stack Frame Size: 148 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  281	
+;  282	/****************************************/
+;  283	/* Handle set conversions
+;  284	/****************************************/
+;  285	static unsigned char set(void)
+;  286	{
+_set:
+	LD	HL,-12
+	CALL	__frameset
+;  287	  char *p2;
+;  288	  char neg,ch;
+;  289	  char *p = 0;
+	LD	BC,0
+	LD	(IX+-4),BC
+;  290	  char width;
+;  291	
+;  292	  /* Use (p == 0) to signal the case that we are skipping this input
+;  293	     string. <THH> */
+;  294	  if (!(fmt_str.flags & FMT_FLAG_IGNORE))
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_150
+;  295	    p = va_arg(argp,char*);
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	BC,(HL)
+	LD	(IX+-4),BC
+L_150:
+;  296	
+;  297	  if (neg = (*fmt_str.set_begin == '^'))
+	LD	HL,(_fmt_str+7)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,94
+	SBC	HL,BC
+	JR	NZ,L__81
+	LD	A,1
+	JR	L__82
+L__81:
+	XOR	A,A
+L__82:
+	LD	(IX+-9),A
+	OR	A,A
+	JR	Z,L_151
+;  298	    fmt_str.set_begin++;
+	LD	BC,(_fmt_str+7)
+	INC	BC
+	LD	(_fmt_str+7),BC
+L_151:
+;  299	
+;  300	  width = fmt_str.field_width;
+	LD	A,(_fmt_str+5)
+	LD	(IX+-1),A
+;  301	  if (width == 0)
+	OR	A,A
+	JR	NZ,L_169
+;  302	    width = 127;
+	LD	(IX+-1),127
+;  303	
+;  304	  while (width--)
+	JR	L_169
+L_170:
+;  305	  {
+;  306	    if ((ch = get()) == EOF)
+	CALL	_get
+	LD	(IX+-8),L
+	LD	A,(IX+-8)
+	CP	A,-1
+	JR	NZ,L_159
+;  307	      return FALSE;
+	XOR	A,A
+	JR	L_177
+L_159:
+;  308	
+;  309	    /* Look for a match in the set. */
+;  310	    for(p2 = fmt_str.set_begin; p2 < fmt_str.set_end; ++p2)
+	LD	BC,(_fmt_str+7)
+	LD	(IX+-7),BC
+	JR	L_158
+L_156:
+;  311	      if (*p2 == ch)
+	LD	HL,(IX+-7)
+	LD	A,(HL)
+	CP	A,(IX+-8)
+	JR	Z,L_165
+	LD	BC,(IX+-7)
+	INC	BC
+	LD	(IX+-7),BC
+;  312		break;	/* Matched one in the set. */
+L_158:
+	LD	BC,(_fmt_str+10)
+	LD	HL,(IX+-7)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_156
+L_165:
+;  313	
+;  314	    if (p2 < fmt_str.set_end && *p2 == ch)
+	LD	BC,(_fmt_str+10)
+	LD	HL,(IX+-7)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_164
+	LD	HL,(IX+-7)
+	LD	A,(HL)
+	CP	A,(IX+-8)
+	JR	NZ,L_164
+;  315	    {
+;  316	      /* We stop scanning if we match a character in the negative set. */
+;  317	      if (neg)
+	LD	A,(IX+-9)
+	OR	A,A
+	JR	NZ,L_173
+	JR	L_168
+;  318		break;
+;  319	    }
+;  320	    else
+L_164:
+;  321	    {
+;  322	      /* Likewise, we stop scanning if we fail to match a character in
+;  323		 the positive set. */
+;  324	      if (!neg)
+	LD	A,(IX+-9)
+	OR	A,A
+	JR	Z,L_173
+;  325		break;
+;  326	    }
+L_168:
+;  327	
+;  328	    /* Store the valid character. <THH> */
+;  329	    if (p)
+	LD	HL,(IX+-4)
+	CALL	__icmpzero
+	JR	Z,L_169
+;  330	      *(p++) = ch;
+	LD	BC,(IX+-4)
+	LD	(IX+-12),BC
+	LD	HL,BC
+	LD	A,(IX+-8)
+	LD	(HL),A
+	LD	BC,(IX+-4)
+	INC	BC
+	LD	(IX+-4),BC
+;  331	  }
+L_169:
+	LD	A,(IX+-1)
+	DEC	(IX+-1)
+	OR	A,A
+	JR	NZ,L_170
+L_173:
+;  332	
+;  333	  if (width > 0)
+	XOR	A,A
+	CP	A,(IX+-1)
+	JP	P,L_175
+;  334	    unget();
+	CALL	_unget
+L_175:
+;  335	
+;  336	  if (p)
+	LD	HL,(IX+-4)
+	CALL	__icmpzero
+	JR	Z,L_176
+;  337	    *p = '\0';
+	LD	HL,(IX+-4)
+	LD	(HL),0
+L_176:
+;  338	
+;  339	  return TRUE;
+	LD	A,1
+;  340	}
+L_177:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _set ***************************
+;Name                         Addr/Register   Size   Type
+;_argp                               STATIC      3   variable
+;_fmt_str                            STATIC     19   variable
+;neg                                   IX-9      1   variable
+;ch                                    IX-8      1   variable
+;p2                                    IX-7      3   variable
+;p                                     IX-4      3   variable
+;width                                 IX-1      1   variable
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  341	
+;  342	/*************************************************
+;  343	*
+;  344	* _u_scan - scan formated string from a file or string
+;  345	*
+;  346	* Inputs:
+;  347	*	src - NULL = input from keyboard, else input from string
+;  348	*       fmt - format string
+;  349	*	argp - argument list pointer
+;  350	*
+;  351	* Returns:
+;  352	*	Number of characters transmitted, or
+;  353	*	-1 if an error occured.
+;  354	*
+;  355	*************************************************/
+;  356	int _u_scan(char *src,char *fmt,va_list ap)
+;  357	{
+__u_scan:
+	LD	HL,-7
+	CALL	__frameset
+;  358	  int i;
+;  359	  int ch;
+;  360	  unsigned char ok=TRUE;
+	LD	(IX+-1),1
+;  361	
+;  362	  argp = ap;
+	LD	BC,(IX+12)
+	LD	(_argp),BC
+;  363	  fields = 0;
+	XOR	A,A
+	LD	(_fields),A
+;  364	  len = 0;
+	LD	BC,0
+	LD	(_len),BC
+;  365	  prev_ch = 0;
+	LD	(_prev_ch),BC
+;  366	  isunget = 0;
+	XOR	A,A
+	LD	(_isunget),A
+;  367	  bptr = NULL;
+	LD	(_bptr),BC
+;  368	
+;  369	  if (src)
+	LD	HL,(IX+6)
+	CALL	__icmpzero
+	JR	Z,L_215
+;  370	    bptr = src;
+	LD	BC,(IX+6)
+	LD	(_bptr),BC
+;  371	
+;  372	  while ( ok && prev_ch!=EOF && *fmt) {
+	JR	L_215
+L_216:
+;  373	    fmt = _u_sscan(fmt,&fmt_str);
+	LD	BC,_fmt_str
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	CALL	__u_sscan
+	POP	BC
+	POP	BC
+	LD	(IX+9),HL
+;  374	    if (fmt_str.status == FMT_ERR)
+	LD	A,(_fmt_str)
+	CP	A,1
+	JR	NZ,L_214
+;  375	      return(fields);
+	LD	A,(_fields)
+	UEXT	HL
+	LD	L,A
+	JR	L_222
+;  376	    else if (fmt_str.status == FMT_PASS_THRU) {
+L_214:
+	LD	A,(_fmt_str)
+	CP	A,2
+	JR	NZ,L_212
+;  377	      if (isspace(fmt_str.chr))
+	LD	A,(_fmt_str+3)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	Z,L_187
+;  378	      {
+;  379	        do ch=get();
+L_181:
+	CALL	_get
+	LD	(IX+-4),HL
+;  380	        while(isspace(ch));
+	LD	BC,HL
+	PUSH	BC
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_181
+;  381	        unget();
+	CALL	_unget
+;  382	      } else
+	JR	L_215
+L_187:
+;  383	      {
+;  384	        ch = get();
+	CALL	_get
+	LD	(IX+-4),HL
+;  385	        if (ch && ch != fmt_str.chr)
+	CALL	__icmpzero
+	JR	Z,L_215
+	LD	A,(_fmt_str+3)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,(IX+-4)
+	SBC	HL,BC
+	JR	NZ,L_220
+	JR	L_215
+;  386		  break;
+;  387	      }
+;  388	    }
+;  389	    else if (fmt_str.flags & FMT_FLAG_SET) {
+L_212:
+	LD	A,(_fmt_str+1)
+	AND	A,128
+	JR	Z,L_210
+;  390	      ok = set();
+	CALL	_set
+	LD	(IX+-1),A
+;  391	    }
+;  392	    else {
+	JR	L_215
+L_210:
+;  393	      switch (fmt_str.type) {
+	LD	A,(_fmt_str+4)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	CALL	__case8
+L__105:
+	DW	18
+	DB	65
+	DW24	L_195	
+
+	DB	69
+	DW24	L_196	
+
+	DB	70
+	DW24	L_197	
+
+	DB	71
+	DW24	L_198	
+
+	DB	88
+	DW24	L_193	
+
+	DB	97
+	DW24	L_199	
+
+	DB	99
+	DW24	L_203	
+
+	DB	100
+	DW24	L_188	
+
+	DB	101
+	DW24	L_200	
+
+	DB	102
+	DW24	L_201	
+
+	DB	103
+	DW24	L_202	
+
+	DB	105
+	DW24	L_189	
+
+	DB	110
+	DW24	L_206	
+
+	DB	111
+	DW24	L_194	
+
+	DB	112
+	DW24	L_205	
+
+	DB	115
+	DW24	L_204	
+
+	DB	117
+	DW24	L_190	
+
+	DB	120
+	DW24	L_192	
+
+	DW24	L_215	
+
+;  394		  register int radix;
+;  395		  case 'd':
+L_188:
+;  396		  case 'i':
+L_189:
+;  397		  case 'u':
+L_190:
+;  398					radix=10;
+	LD	BC,10
+	LD	(IX+-7),BC
+;  399					goto _sclr;
+	JR	L_191
+;  400		  case 'x':
+L_192:
+;  401		  case 'X':
+L_193:
+;  402					radix=16;
+	LD	BC,16
+	LD	(IX+-7),BC
+;  403					goto _sclr;
+	JR	L_191
+;  404		  case 'o':
+L_194:
+;  405		  			radix=8;
+	LD	BC,8
+	LD	(IX+-7),BC
+L_191:
+;  406		  _sclr:
+;  407					ok = scalar(radix);
+	LD	BC,(IX+-7)
+	PUSH	BC
+	CALL	_scalar
+	POP	BC
+	LD	(IX+-1),A
+;  408	
+;  409			break;
+	JR	L_215
+;  410		  case 'A':
+L_195:
+;  411		  case 'E':
+L_196:
+;  412		  case 'F':
+L_197:
+;  413		  case 'G':
+L_198:
+;  414		  case 'a':
+L_199:
+;  415		  case 'e':
+L_200:
+;  416		  case 'f':
+L_201:
+;  417		  case 'g':
+L_202:
+;  418	            ok = fpoint();
+	CALL	_fpoint
+	LD	(IX+-1),A
+;  419			    break;
+	JR	L_215
+;  420		  case 'c':
+L_203:
+;  421		        ok = character();
+	CALL	_character
+	LD	(IX+-1),A
+;  422		        break;
+	JR	L_215
+;  423		  case 's':
+L_204:
+;  424			    ok = string();
+	CALL	_string
+	LD	(IX+-1),A
+;  425			    break;
+	JR	L_215
+;  426		  case 'p':
+L_205:
+;  427			    ok = pointer();
+	CALL	_pointer
+	LD	(IX+-1),A
+;  428			    break;
+	JR	L_215
+;  429		  case 'n':
+L_206:
+;  430			if (!(fmt_str.flags & FMT_FLAG_IGNORE)) {
+	LD	A,(_fmt_str+1)
+	AND	A,16
+	JR	NZ,L_215
+;  431			  *(va_arg(argp,int*)) = len;
+	LD	IY,(_argp)
+	LEA	BC,IY+3
+	LD	(_argp),BC
+	LD	IY,(_argp)
+	LEA	HL,IY+-3
+	LD	HL,(HL)
+	LD	BC,(_len)
+	LD	(HL),BC
+;  432			  ++fields;
+	LD	A,(_fields)
+	INC	A
+	LD	(_fields),A
+;  433			}
+;  434			break;
+;  435	      }
+;  436	    }
+;  437	  }
+L_215:
+	LD	A,(IX+-1)
+	OR	A,A
+	JR	Z,L_220
+	LD	BC,16777215
+	LD	HL,(_prev_ch)
+	OR	A,A
+	SBC	HL,BC
+	JR	Z,L_220
+	LD	HL,(IX+9)
+	LD	A,(HL)
+	OR	A,A
+	JR	NZ,L_216
+L_220:
+;  438	  // ISO Spec:  Return EOF if an input error occurs before any conversion.
+;  439	  // Otherwise return the number of input items assigned.
+;  440	  // A sucessfull passthrough counts as a conversion, so we look at len,
+;  441	  // which will be 1 for a unsucessfull call to get on the first try.
+;  442	  if (prev_ch == EOF && len<=1)
+	LD	BC,16777215
+	LD	HL,(_prev_ch)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_221
+	LD	BC,(_len)
+	LD	HL,1
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_221
+;  443	     return EOF;
+	LD	HL,16777215
+	JR	L_222
+L_221:
+;  444	  return fields;
+	LD	A,(_fields)
+	UEXT	HL
+	LD	L,A
+;  445	}
+L_222:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_scan ***************************
+;Name                         Addr/Register   Size   Type
+;_isspace                            IMPORT  -----   function
+;_fmt_str                            STATIC     19   variable
+;__u_sscan                           IMPORT  -----   function
+;_bptr                               STATIC      3   variable
+;_isunget                            STATIC      1   variable
+;_prev_ch                            STATIC      3   variable
+;_len                                STATIC      3   variable
+;_fields                             STATIC      1   variable
+;_argp                               STATIC      3   variable
+;radix                                 IX-7      3   variable
+;ch                                    IX-4      3   variable
+;ok                                    IX-1      1   variable
+;ap                                   IX+12      3   parameter
+;fmt                                   IX+9      3   parameter
+;src                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 22 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _getchar:ROM
+	XREF _isxdigit:ROM
+	XREF _isspace:ROM
+	XREF _isdigit:ROM
+	XREF __u_sscan:ROM
+	XREF _strtoul:ROM
+	XREF _strtol:ROM
+	XREF _strtod:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XREF __case8:ROM
+	XDEF __u_scan
+	END

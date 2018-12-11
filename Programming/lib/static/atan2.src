@@ -1,0 +1,179 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\ATAN2.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/* Copyright (c) 2000-2008 Zilog, Inc. */
+;    2	
+;    3	#define pio2	1.57079632679489e0
+;    4	
+;    5	double atan2(double arg1,double arg2) {
+_atan2:
+	CALL	__frameset0
+;    6		double satan(double);
+;    7	
+;    8		if((arg1+arg2)==arg1) {
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JR	NZ,L_9
+;    9			if(arg1 >= 0.) { 
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	M,L_1
+;   10				return(pio2);
+	LD	HL,13176795
+	LD	E,63
+	JR	L_10
+;   11			} else { 
+L_1:
+;   12				return(-pio2);
+	LD	HL,13176795
+	LD	E,191
+	JR	L_10
+;   13			}
+;   14		} else if(arg2 < 0.) {
+L_9:
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_7
+;   15			if(arg1 >= 0.) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	XOR	A,A
+	CALL	__fcmp
+	JP	M,L_3
+;   16				return(pio2+pio2 - satan(-arg1/arg2));
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_satan
+	POP	BC
+	POP	BC
+	LD	BC,4788187
+	LD	A,64
+	CALL	__fsub
+	LD	E,A
+	LD	HL,BC
+	JR	L_10
+;   17			} else {
+L_3:
+;   18				return(-pio2-pio2 + satan(arg1/arg2));
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_satan
+	POP	BC
+	POP	BC
+	LD	BC,HL
+	LD	HL,4788187
+	LD	A,E
+	LD	E,192
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	JR	L_10
+;   19			}
+;   20		} else if(arg1 > 0) {
+L_7:
+	OR	A,A
+	SBC	HL,HL
+	LD	E,0
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_5
+;   21			return(satan(arg1/arg2));
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_satan
+	POP	BC
+	POP	BC
+	JR	L_10
+;   22		} else {
+L_5:
+;   23			return(-satan(-arg1/arg2));
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_satan
+	POP	BC
+	POP	BC
+	LD	BC,HL
+	LD	A,E
+	CALL	__fneg
+	LD	E,A
+	LD	HL,BC
+;   24		}
+;   25	}
+L_10:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _atan2 ***************************
+;Name                         Addr/Register   Size   Type
+;_satan                              IMPORT  -----   function
+;arg2                                 IX+12      4   parameter
+;arg1                                  IX+6      4   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _satan:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __frameset0:ROM
+	XDEF _atan2
+	END

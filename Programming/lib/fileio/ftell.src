@@ -1,0 +1,43 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FTELL.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	long int ftell(FILE *stream) {
+_ftell:
+	CALL	__frameset0
+;    5	    return (long int)ti_Tell(stream->slot);
+	LD	IY,(IX+6)
+	LD	C,(IY+0)
+	LD	B,0
+	PUSH	BC
+	CALL	_ti_Tell
+	POP	BC
+	LD	BC,HL
+	CALL	__stoiu
+	LD	E,0
+;    6	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _ftell ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_Tell                            IMPORT  -----   function
+;stream                                IX+6      3   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_Tell:ROM
+	XREF __stoiu:ROM
+	XREF __frameset0:ROM
+	XDEF _ftell
+	END

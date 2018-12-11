@@ -1,0 +1,46 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\PRINT_SPUTCH.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	#include <format.h>
+;    6	
+;    7	/* Send a character to the sprintf destination */
+;    8	
+;    9	extern char *__print_out;
+;   10	
+;   11	void __print_sputch(char ch) {
+___print_sputch:
+	CALL	__frameset0
+;   12	    *__print_out++ = ch;
+	LD	HL,(___print_out)
+	LD	A,(IX+6)
+	LD	(HL),A
+	LD	BC,(___print_out)
+	INC	BC
+	LD	(___print_out),BC
+;   13	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** ___print_sputch ***************************
+;Name                         Addr/Register   Size   Type
+;___print_out                        IMPORT      3   variable
+;ch                                    IX+6      1   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF ___print_out:ROM
+	XREF __frameset0:ROM
+	XDEF ___print_sputch
+	END

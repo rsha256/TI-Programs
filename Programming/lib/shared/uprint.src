@@ -1,0 +1,516 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UPRINT.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <format.h>
+;    2	#include <stddef.h>
+;    3	#include <stdarg.h>
+;    4	#include <string.h>
+;    5	#include <stdlib.h>
+;    6	
+;    7	extern struct fmt_type __print_fmt;
+;    8	extern unsigned char __print_len;
+;    9	extern char __print_leading_char;  // Initial +, -, or space for number
+;   10	extern char *__print_out;
+;   11	
+;   12	extern void (*__print_xputch)(char);
+;   13	
+;   14	void __print_sendstring(char *sp);
+;   15	void __print_putch(char ch);
+;   16	
+;   17	int _u_print(char *dest, char *fmt, va_list argp) {
+__u_print:
+	LD	HL,-14
+	CALL	__frameset
+;   18	    char *sp;
+;   19	    double d;
+;   20	
+;   21	    __print_len = 0;
+	XOR	A,A
+	LD	(___print_len),A
+;   22	    __print_out = dest;
+	LD	BC,(IX+6)
+	LD	(___print_out),BC
+;   23	    while (*fmt) {
+	JR	L_45
+;   24	        while (*fmt && *fmt != (char)'%') {
+L_3:
+;   25	            __print_putch(*fmt++);
+	LD	BC,(IX+9)
+	LD	(IX+-11),BC
+	LD	BC,(IX+9)
+	INC	BC
+	LD	(IX+9),BC
+	LD	HL,(IX+-11)
+	LD	C,(HL)
+	LD	B,0
+	PUSH	BC
+	CALL	___print_putch
+	POP	BC
+;   26	            ++__print_len;
+	LD	A,(___print_len)
+	INC	A
+	LD	(___print_len),A
+;   27	        }
+L_2:
+	LD	HL,(IX+9)
+	LD	A,(HL)
+	OR	A,A
+	JR	NZ,L__1
+	LD	A,1
+	JR	L__2
+L__1:
+	XOR	A,A
+L__2:
+	LD	(IX+-4),A
+	OR	A,A
+	JR	NZ,L_44
+	LD	HL,(IX+9)
+	LD	A,(HL)
+	CP	A,37
+	JR	NZ,L_3
+L_44:
+;   28	        if (*fmt) {         /* we found a % in format string */
+	LD	A,(IX+-4)
+	OR	A,A
+	JR	NZ,L_45
+;   29	            fmt = _u_pscan(sp = fmt, &__print_fmt,&argp);
+	LD	BC,(IX+9)
+	LD	(IX+-3),BC
+	PEA	IX+12
+	LD	BC,___print_fmt
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	__u_pscan
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+9),HL
+;   30	            if (__print_fmt.status == (unsigned char)FMT_ERR) {
+	LD	A,(___print_fmt)
+	CP	A,1
+	JR	Z,L_7
+	JR	L_42
+;   31	
+;   32	                /* error in format string, just dump out from p to fmt */
+;   33	
+;   34	                for (;sp < fmt;++__print_len,++sp) {
+L_5:
+;   35	                    __print_putch(*sp++);
+	LD	BC,(IX+-3)
+	LD	(IX+-14),BC
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+	LD	HL,(IX+-14)
+	LD	C,(HL)
+	LD	B,0
+	PUSH	BC
+	CALL	___print_putch
+	POP	BC
+	LD	A,(___print_len)
+	INC	A
+	LD	(___print_len),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   36	                }
+L_7:
+	LD	BC,(IX+9)
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_5
+;   37	                return -1;
+	LD	HL,16777215
+	JR	L_50
+;   38	            } else if (__print_fmt.status == (unsigned char)FMT_PASS_THRU) {
+L_42:
+	LD	A,(___print_fmt)
+	CP	A,2
+	JR	NZ,L_40
+;   39	                __print_putch(__print_fmt.chr);
+	LD	A,(___print_fmt+3)
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	CALL	___print_putch
+	POP	BC
+;   40	                ++__print_len;
+	LD	A,(___print_len)
+	INC	A
+	LD	(___print_len),A
+;   41	            } else {
+	JR	L_45
+L_40:
+;   42	                switch (__print_fmt.type) {
+	LD	A,(___print_fmt+4)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	CALL	__case8
+L__9:
+	DW	15
+	DB	69
+	DW24	L_25	
+
+	DB	71
+	DW24	L_27	
+
+	DB	88
+	DW24	L_16	
+
+	DB	99
+	DW24	L_31	
+
+	DB	100
+	DW24	L_9	
+
+	DB	101
+	DW24	L_24	
+
+	DB	102
+	DW24	L_23	
+
+	DB	103
+	DW24	L_26	
+
+	DB	105
+	DW24	L_10	
+
+	DB	110
+	DW24	L_34	
+
+	DB	111
+	DW24	L_18	
+
+	DB	112
+	DW24	L_33	
+
+	DB	115
+	DW24	L_32	
+
+	DB	117
+	DW24	L_17	
+
+	DB	120
+	DW24	L_15	
+
+	DW24	L_45	
+
+;   43	                    case 'd':
+L_9:
+;   44	                    case 'i':
+L_10:
+;   45	                    if (__print_fmt.size == (char)'l' || __print_fmt.size == (char)'L') {
+	LD	A,(___print_fmt+2)
+	CP	A,108
+	JR	Z,L_12
+	LD	A,(___print_fmt+2)
+	CP	A,76
+	JR	NZ,L_13
+L_12:
+;   46	                        _u_ltoa(va_arg(argp, long));
+	LD	IY,(IX+12)
+	LEA	BC,IY+6
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LD	BC,(IY+-6)
+	LD	A,(IY+-3)
+	LD	H,0
+	LD	L,A
+	PUSH	HL
+	PUSH	BC
+	CALL	__u_ltoa
+	POP	BC
+	POP	BC
+;   47	                    } else {
+	JR	L_45
+L_13:
+;   48	                        _u_ltoa((long)va_arg(argp, int));
+	LD	IY,(IX+12)
+	LEA	BC,IY+3
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LD	BC,(IY+-3)
+	CALL	__itol
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	__u_ltoa
+	POP	BC
+	POP	BC
+;   49	                    }
+;   50	                    break;
+	JR	L_45
+;   51	                    case 'x':
+L_15:
+;   52	                    case 'X':
+L_16:
+;   53	                    case 'u':
+L_17:
+;   54	                    case 'o':
+L_18:
+;   55	                        if (__print_fmt.size == (char)'l' || __print_fmt.size == (char)'L') {
+	LD	A,(___print_fmt+2)
+	CP	A,108
+	JR	Z,L_20
+	LD	A,(___print_fmt+2)
+	CP	A,76
+	JR	NZ,L_21
+L_20:
+;   56	                            _u_ultoa(va_arg(argp,long));
+	LD	IY,(IX+12)
+	LEA	BC,IY+6
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LD	BC,(IY+-6)
+	LD	A,(IY+-3)
+	LD	H,0
+	LD	L,A
+	PUSH	HL
+	PUSH	BC
+	CALL	__u_ultoa
+	POP	BC
+	POP	BC
+;   57	                        } else {
+	JR	L_45
+L_21:
+;   58	                            _u_ultoa((unsigned long)va_arg(argp,unsigned int));
+	LD	IY,(IX+12)
+	LEA	BC,IY+3
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LD	BC,(IY+-3)
+	LD	DE,BC
+	XOR	A,A
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	__u_ultoa
+	POP	BC
+	POP	BC
+;   59	                        }
+;   60	                        break;
+	JR	L_45
+;   61	                    case 'f':
+L_23:
+;   62	                    case 'e':
+L_24:
+;   63	                    case 'E':
+L_25:
+;   64	                    case 'g':
+L_26:
+;   65	                    case 'G':
+L_27:
+;   66	                        d = va_arg(argp,double);
+	LD	IY,(IX+12)
+	LEA	BC,IY+6
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LEA	HL,IY+-6
+	LD	BC,(HL)
+	INC	HL
+	INC	HL
+	INC	HL
+	LD	A,(HL)
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   67	                        if (__print_fmt.type == (char)'g') {
+	LD	A,(___print_fmt+4)
+	CP	A,103
+	JR	NZ,L_29
+;   68	                            _u_dtog(d);
+	LD	C,(IX+-5)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-8)
+	PUSH	BC
+	CALL	__u_dtog
+	POP	BC
+	POP	BC
+;   69	                        } else {
+	JR	L_45
+L_29:
+;   70	                            _u_dtof(d);
+	LD	C,(IX+-5)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-8)
+	PUSH	BC
+	CALL	__u_dtof
+	POP	BC
+	POP	BC
+;   71	                        }
+;   72	                        break;
+	JR	L_45
+;   73	                    case 'c':
+L_31:
+;   74	                        __print_buff[0] = va_arg(argp,int);
+	LD	IY,(IX+12)
+	LEA	BC,IY+3
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+;   75	                        __print_buff[1] = '\0';
+;   76	                        __print_sendstring(__print_buff);
+	LD	BC,___print_buff
+	PUSH	BC
+	LEA	HL,IY+-3
+	LD	A,(HL)
+	LD	(___print_buff),A
+	LD	HL,___print_buff
+	INC	HL
+	LD	(HL),0
+	CALL	___print_sendstring
+	POP	BC
+;   77	                        break;
+	JR	L_45
+;   78	                    case 's':
+L_32:
+;   79	                        sp = va_arg(argp, char*);
+	LD	IY,(IX+12)
+	LEA	BC,IY+3
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LEA	HL,IY+-3
+	LD	BC,(HL)
+	LD	(IX+-3),BC
+;   80	                        __print_sendstring(sp);
+	PUSH	BC
+	CALL	___print_sendstring
+	POP	BC
+;   81	                        break;
+	JR	L_45
+;   82	                    case 'p':
+L_33:
+;   83	                        _u_ultoa((long)va_arg(argp,void*));
+	LD	IY,(IX+12)
+	LEA	BC,IY+3
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LD	BC,(IY+-3)
+	LD	DE,BC
+	XOR	A,A
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	__u_ultoa
+	POP	BC
+	POP	BC
+;   84	                        break;
+	JR	L_45
+;   85	                    case 'n':
+L_34:
+;   86	                        sp = va_arg(argp, char*);
+	LD	IY,(IX+12)
+	LEA	BC,IY+3
+	LD	(IX+12),BC
+	LD	IY,(IX+12)
+	LEA	HL,IY+-3
+	LD	BC,(HL)
+	LD	(IX+-3),BC
+;   87	                        if (__print_fmt.size == (char)'l' || __print_fmt.size == (char)'L') {
+	LD	A,(___print_fmt+2)
+	CP	A,108
+	JR	Z,L_36
+	LD	A,(___print_fmt+2)
+	CP	A,76
+	JR	NZ,L_37
+L_36:
+;   88	                            *((long*)sp) = __print_len;
+	UEXT	HL
+	LD	A,(___print_len)
+	LD	L,A
+	LD	IY,(IX+-3)
+	LD	(IY),HL
+	LD	(IY+3),H
+;   89	                        } else {
+	JR	L_45
+L_37:
+;   90	                            *((int*)sp) = __print_len;
+	LD	A,(___print_len)
+	UEXT	HL
+	LD	L,A
+	LD	IY,(IX+-3)
+	LD	(IY),HL
+;   91	                        }
+;   92	                        break;
+;   93	                }
+;   94	            }
+;   95	        }
+;   96	    }
+L_45:
+	LD	HL,(IX+9)
+	LD	A,(HL)
+	OR	A,A
+	JR	NZ,L_2
+;   97	
+;   98	    if (__print_out) {
+	LD	HL,(___print_out)
+	CALL	__icmpzero
+	JR	Z,L_49
+;   99	        *__print_out = '\0';
+	LD	HL,(___print_out)
+	LD	(HL),0
+;  100	    }
+L_49:
+;  101	    return __print_len;
+	LD	A,(___print_len)
+	UEXT	HL
+	LD	L,A
+;  102	}
+L_50:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_print ***************************
+;Name                         Addr/Register   Size   Type
+;___print_sendstring                 IMPORT  -----   function
+;___print_buff                       IMPORT  unknown variable
+;__u_dtof                            IMPORT  -----   function
+;__u_dtog                            IMPORT  -----   function
+;__u_ultoa                           IMPORT  -----   function
+;__u_ltoa                            IMPORT  -----   function
+;___print_fmt                        IMPORT     19   variable
+;__u_pscan                           IMPORT  -----   function
+;___print_putch                      IMPORT  -----   function
+;___print_out                        IMPORT      3   variable
+;___print_len                        IMPORT      1   variable
+;d                                     IX-8      4   variable
+;G_0                                   IX-4      1   variable
+;sp                                    IX-3      3   variable
+;argp                                 IX+12      3   parameter
+;fmt                                   IX+9      3   parameter
+;dest                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 29 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF ___print_putch:ROM
+	XREF ___print_sendstring:ROM
+	XREF ___print_out:ROM
+	XREF __u_pscan:ROM
+	XREF __u_dtog:ROM
+	XREF __u_dtof:ROM
+	XREF __u_ultoa:ROM
+	XREF __u_ltoa:ROM
+	XREF ___print_len:ROM
+	XREF ___print_buff:ROM
+	XREF ___print_fmt:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XREF __case8:ROM
+	XDEF __u_print
+	END

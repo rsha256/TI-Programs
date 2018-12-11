@@ -1,0 +1,47 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FSEEK.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	int fseek(FILE *stream, long int offset, int origin) {
+_fseek:
+	CALL	__frameset0
+;    5	    return ti_Seek((int)offset, origin, stream->slot);
+	LD	IY,(IX+6)
+	LD	C,(IY+0)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+15)
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	CALL	_ti_Seek
+	POP	BC
+	POP	BC
+	POP	BC
+;    6	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fseek ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_Seek                            IMPORT  -----   function
+;origin                               IX+15      3   parameter
+;offset                                IX+9      4   parameter
+;stream                                IX+6      3   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_Seek:ROM
+	XREF __frameset0:ROM
+	XDEF _fseek
+	END

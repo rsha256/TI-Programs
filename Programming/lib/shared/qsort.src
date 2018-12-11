@@ -1,0 +1,378 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\QSORT.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	#include <stddef.h>
+;   10	#include <stdlib.h>
+;   11	
+;   12	/*************************************************
+;   13	*
+;   14	* qsort - Quick sort
+;   15	*
+;   16	* Inputs:
+;   17	*	base	- base of array to be sorted
+;   18	*	nel	- number of elements
+;   19	*	size	- size of each element
+;   20	*	compar	- pointer to function for comparison
+;   21	*
+;   22	* Returns:
+;   23	*	nothing
+;   24	*
+;   25	*************************************************/
+;   26	static void swapmem(char *a,char *b,size_t size)
+;   27	{
+_swapmem:
+	LD	HL,-4
+	CALL	__frameset
+;   28	  register char t;
+;   29	  register size_t i;
+;   30	
+;   31	  for (i=0;i<size;++i,++b,++a) {
+	LD	BC,0
+	LD	(IX+-4),BC
+	JR	L_2
+L_0:
+;   32	    t = *a;
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	(IX+-1),A
+;   33	    *a = *b;
+	LD	HL,(IX+9)
+	LD	A,(HL)
+	LD	HL,(IX+6)
+	LD	(HL),A
+;   34	    *b = t;
+	LD	HL,(IX+9)
+	LD	A,(IX+-1)
+	LD	(HL),A
+	LD	BC,(IX+-4)
+	INC	BC
+	LD	(IX+-4),BC
+	LD	BC,(IX+9)
+	INC	BC
+	LD	(IX+9),BC
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   35	  }
+L_2:
+	LD	BC,(IX+12)
+	LD	HL,(IX+-4)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_0
+;   36	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _swapmem ***************************
+;Name                         Addr/Register   Size   Type
+;i                                     IX-4      3   variable
+;t                                     IX-1      1   variable
+;size                                 IX+12      3   parameter
+;b                                     IX+9      3   parameter
+;a                                     IX+6      3   parameter
+
+
+; Stack Frame Size: 19 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   37	
+;   38	struct stk {
+;   39	  char *l;
+;   40	  char *r;
+;   41	};
+;   42	
+;   43	void qsort(     char *base,
+;   44			size_t nel,
+;   45			size_t size,
+;   46	                int (*compar)(void *,void *))
+;   47	{
+_qsort:
+	LD	HL,-111
+	CALL	__frameset
+;   48	  char *i;
+;   49	  char *j;
+;   50	  char *x;
+;   51	  char *r;
+;   52	  struct stk *sp;
+;   53	  struct stk stack[16];
+;   54	
+;   55	  sp = stack;
+	LEA	BC,IX+-111
+	LD	(IX+-9),BC
+;   56	  r = base + (nel-1)*size;
+	LD	IY,(IX+9)
+	LD	BC,(IX+12)
+	LD	DE,(IX+6)
+	LEA	HL,IY+-1
+	CALL	__imulu
+	ADD	HL,DE
+	LD	(IX+-12),HL
+;   57	  for (;;) {
+;   58	    do {
+L_25:
+;   59	      x = base + (r-base)/size/2 * size;
+	LD	BC,(IX+6)
+	LD	HL,(IX+-12)
+	OR	A,A
+	SBC	HL,BC
+	LD	BC,(IX+12)
+	CALL	__idivu
+	LD	A,1
+	CALL	__ishru_b
+	LD	BC,(IX+12)
+	CALL	__imulu
+	LD	BC,(IX+6)
+	ADD	HL,BC
+	LD	(IX+-15),HL
+;   60	      i = base;
+	LD	BC,(IX+6)
+	LD	(IX+-3),BC
+;   61	      j = r;
+	LD	BC,(IX+-12)
+	LD	(IX+-6),BC
+;   62	      do {
+;   63		while ((*compar)(i,x) < 0)
+	JR	L_4
+L_5:
+;   64		  i += size;
+	LD	BC,(IX+12)
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-3),HL
+L_4:
+	LD	IY,(IX+15)
+	LD	BC,(IX+-15)
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	__indcall
+	POP	BC
+	POP	BC
+	CALL	__icmpzero
+	CALL	__setflag
+	JP	M,L_5
+;   65		while ((*compar)(x,j) < 0)
+	JR	L_6
+L_7:
+;   66		  j -= size;
+	LD	BC,(IX+12)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	LD	(IX+-6),HL
+L_6:
+	LD	IY,(IX+15)
+	LD	BC,(IX+-6)
+	PUSH	BC
+	LD	BC,(IX+-15)
+	PUSH	BC
+	CALL	__indcall
+	POP	BC
+	POP	BC
+	CALL	__icmpzero
+	CALL	__setflag
+	JP	M,L_7
+;   67		if (i < j) {
+	LD	BC,(IX+-6)
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_15
+;   68		  swapmem(i, j, size);
+	LD	BC,(IX+12)
+	PUSH	BC
+	LD	BC,(IX+-6)
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_swapmem
+	POP	BC
+	POP	BC
+	POP	BC
+;   69		  if (i == x)
+	LD	BC,(IX+-15)
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_11
+;   70		    x = j;
+	LD	BC,(IX+-6)
+	LD	(IX+-15),BC
+;   71		  else if (j == x)
+	JR	L_15
+L_11:
+	LD	BC,(IX+-15)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_15
+;   72		    x = i;
+	LD	BC,(IX+-3)
+	LD	(IX+-15),BC
+;   73		}
+L_15:
+;   74		if (i <= j) {
+	LD	BC,(IX+-3)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_17
+;   75		  i += size;
+	LD	BC,(IX+12)
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-3),HL
+;   76		  j -= size;
+	LD	BC,(IX+12)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	LD	(IX+-6),HL
+;   77		}
+;   78	      } while (i <= j);
+L_17:
+	LD	BC,(IX+-3)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_4
+;   79	      if (j-base < r-i) {
+	LD	BC,(IX+6)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	LD	DE,HL
+	LD	HL,(IX+-12)
+	OR	A,A
+	LD	BC,(IX+-3)
+	SBC	HL,BC
+	LD	BC,HL
+	LD	HL,DE
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_23
+;   80		if (i < r) {	/* stack request for right partition */
+	LD	BC,(IX+-12)
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_19
+;   81		  sp->l = i;
+	LD	BC,(IX+-3)
+	LD	IY,(IX+-9)
+	LD	(IY+0),BC
+;   82		  sp->r = r;
+	LD	BC,(IX+-12)
+	LD	(IY+3),BC
+;   83		  ++sp;
+	LEA	IY,IY+6
+	LD	(IX+-9),IY
+;   84		}
+L_19:
+;   85		r = j;			/* continue sorting left partition */
+	LD	BC,(IX+-6)
+	LD	(IX+-12),BC
+;   86	      }
+;   87	      else {
+	JR	L_26
+L_23:
+;   88		if (base < j) { /* stack request for left partition */
+	LD	BC,(IX+-6)
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_21
+;   89		  sp->l = base;
+	LD	BC,(IX+6)
+	LD	IY,(IX+-9)
+	LD	(IY+0),BC
+;   90		  sp->r = j;
+	LD	BC,(IX+-6)
+	LD	(IY+3),BC
+;   91		  ++sp;
+	LEA	IY,IY+6
+	LD	(IX+-9),IY
+;   92		}
+L_21:
+;   93		base = i;		/* continue sorting right partition */
+	LD	BC,(IX+-3)
+	LD	(IX+6),BC
+;   94	      }
+;   95	    } while (base < r);
+L_26:
+	LD	BC,(IX+-12)
+	LD	HL,(IX+6)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_25
+;   96	
+;   97	    if (sp <= stack)
+	LD	BC,(IX+-9)
+	LEA	HL,IX+-111
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_32
+;   98	      break;
+;   99	    --sp;
+	LD	IY,(IX+-9)
+	LEA	BC,IY+-6
+	LD	(IX+-9),BC
+;  100	    base = sp->l;
+	LD	IY,(IX+-9)
+	LD	BC,(IY+0)
+	LD	(IX+6),BC
+;  101	    r = sp->r;
+	LD	BC,(IY+3)
+	LD	(IX+-12),BC
+;  102	  }
+	JR	L_25
+;  103	}
+L_32:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _qsort ***************************
+;Name                         Addr/Register   Size   Type
+;stack                               IX-111     96   variable
+;x                                    IX-15      3   variable
+;r                                    IX-12      3   variable
+;sp                                    IX-9      3   variable
+;j                                     IX-6      3   variable
+;i                                     IX-3      3   variable
+;compar                               IX+15      3   parameter
+;size                                 IX+12      3   parameter
+;nel                                   IX+9      3   parameter
+;base                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 129 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __indcall:ROM
+	XREF __idivu:ROM
+	XREF __imulu:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XREF __ishru_b:ROM
+	XDEF _qsort
+	END

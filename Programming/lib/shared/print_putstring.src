@@ -1,0 +1,246 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\PRINT_PUTSTRING.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	#include <format.h>
+;    6	#include <string.h>
+;    7	#include <stdlib.h>
+;    8	
+;    9	/* Send a string to the printf/sprintf destination                         */
+;   10	/* The compiler may generate direct calls to this to bypass the runtime    */
+;   11	/* parsing of printf formats.                                              */
+;   12	
+;   13	void __print_putch(char ch);
+;   14	
+;   15	void __print_sendstring(char *sp)
+;   16	{
+___print_sendstring:
+	LD	HL,-16
+	CALL	__frameset
+;   17	  unsigned char i = 0;
+	LD	(IX+-1),0
+;   18	  unsigned short j, jmax;
+;   19	  char* s = sp;
+	LD	BC,(IX+6)
+	LD	(IX+-8),BC
+;   20	  char padRight = 0;
+	LD	(IX+-5),0
+;   21	  if (__print_fmt.field_width != 0)
+	LD	A,(___print_fmt+5)
+	OR	A,A
+	JR	Z,L_16
+;   22	  {
+;   23	      padRight = ((__print_fmt.flags & FMT_FLAG_MINUS) || __print_fmt.field_width < 0);
+	LD	A,(___print_fmt+1)
+	AND	A,1
+	JR	NZ,L_1
+	LD	A,(___print_fmt+5)
+	OR	A,A
+	JP	P,L_2
+L_1:
+	LD	BC,1
+	LD	(IX+-13),BC
+	JR	L_3
+L_2:
+	LD	BC,0
+	LD	(IX+-13),BC
+L_3:
+	LD	A,(IX+-13)
+	LD	(IX+-5),A
+;   24	      if (!padRight)
+	OR	A,A
+	JR	NZ,L_16
+;   25	      {
+;   26	         char pad = strlen(s);
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_strlen
+	POP	BC
+	LD	(IX+-2),L
+;   27	         if (__print_fmt.flags & FMT_FLAG_PRECISION && pad > __print_fmt.precision)
+	LD	A,(___print_fmt+1)
+	AND	A,16
+	JR	Z,L_7
+	LD	A,(___print_fmt+6)
+	CP	A,(IX+-2)
+	JP	P,L_7
+;   28	            pad = __print_fmt.precision;
+	LD	A,(___print_fmt+6)
+	LD	(IX+-2),A
+L_7:
+;   29	
+;   30	         pad = __print_fmt.field_width-pad;
+	LD	A,(___print_fmt+5)
+	SUB	A,(IX+-2)
+	LD	(IX+-2),A
+;   31	         while(pad > 0)
+	JR	L_10
+L_11:
+;   32	         {
+;   33	           __print_putch(' ');
+	LD	BC,32
+	PUSH	BC
+	CALL	___print_putch
+	POP	BC
+;   34	           i++;
+	INC	(IX+-1)
+;   35	           pad--;
+	DEC	(IX+-2)
+;   36	         }
+L_10:
+	XOR	A,A
+	CP	A,(IX+-2)
+	CALL	__setflag
+	JP	M,L_11
+;   37	      }
+;   38	  }
+L_16:
+;   39	  /* If precision not specified, make it 127 */
+;   40	  if (!(__print_fmt.flags & FMT_FLAG_PRECISION))
+	LD	A,(___print_fmt+1)
+	AND	A,16
+	JR	NZ,L_15
+;   41	    jmax = 0xffff;
+	LD	(IX+-10),255
+	LD	(IX+-9),255
+;   42	  else
+	JR	L_23
+L_15:
+;   43	    jmax = (unsigned)__print_fmt.precision;
+	LD	A,(___print_fmt+6)
+	LD	B,A
+	SEXT	HL
+	LD	(IX+-10),B
+	LD	(IX+-9),H
+L_23:
+;   44	
+;   45	  for (j=0;j<jmax && *s;j++)
+	LD	(IX+-4),0
+	LD	(IX+-3),0
+	JR	L_22
+L_20:
+;   46	      __print_putch(*s++);
+	LD	BC,(IX+-8)
+	LD	(IX+-16),BC
+	LD	BC,(IX+-8)
+	INC	BC
+	LD	(IX+-8),BC
+	LD	HL,(IX+-16)
+	LD	C,(HL)
+	LD	B,0
+	PUSH	BC
+	CALL	___print_putch
+	POP	BC
+	LD	HL,(IX+-4)
+	INC	HL
+	LD	(IX+-4),L
+	LD	(IX+-3),H
+L_22:
+	LD	BC,(IX+-10)
+	LD	HL,(IX+-4)
+	OR	A,A
+	SBC.SIS	HL,BC
+	JR	NC,L_24
+	LD	HL,(IX+-8)
+	LD	A,(HL)
+	OR	A,A
+	JR	NZ,L_20
+L_24:
+;   47	  i += j;
+	LD	A,(IX+-4)
+	ADD	A,(IX+-1)
+	LD	(IX+-1),A
+;   48	  if (padRight)
+	LD	A,(IX+-5)
+	OR	A,A
+	JR	Z,L_29
+;   49	  {
+;   50	     __print_fmt.field_width = abs(__print_fmt.field_width);
+	LD	A,(___print_fmt+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	PUSH	HL
+	CALL	_abs
+	POP	BC
+	LD	A,L
+	LD	(___print_fmt+5),A
+;   51	     while (i < __print_fmt.field_width)
+	JR	L_26
+L_27:
+;   52	     {
+;   53	        __print_putch(' ');
+	LD	BC,32
+	PUSH	BC
+	CALL	___print_putch
+	POP	BC
+;   54	        i++;
+	INC	(IX+-1)
+;   55	     }
+L_26:
+	LD	A,(___print_fmt+5)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_27
+;   56	  }
+L_29:
+;   57	  __print_len += i;
+	LD	A,(___print_len)
+	ADD	A,(IX+-1)
+	LD	(___print_len),A
+;   58	  /*  Reset the data manipulated by the compiler, so that no code is needed */
+;   59	  /*  to set default values.                                                */
+;   60	  __print_fmt.field_width= __print_fmt.precision= __print_fmt.flags= 0;
+	XOR	A,A
+	LD	(___print_fmt+1),A
+	LD	(___print_fmt+6),A
+	LD	(___print_fmt+5),A
+;   61	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** ___print_sendstring ***************************
+;Name                         Addr/Register   Size   Type
+;___print_len                        IMPORT      1   variable
+;_abs                                IMPORT  -----   function
+;___print_putch                      IMPORT  -----   function
+;_strlen                             IMPORT  -----   function
+;___print_fmt                        IMPORT     19   variable
+;temp4                                IX-13      3   variable
+;jmax                                 IX-10      2   variable
+;s                                     IX-8      3   variable
+;padRight                              IX-5      1   variable
+;j                                     IX-4      2   variable
+;pad                                   IX-2      1   variable
+;i                                     IX-1      1   variable
+;sp                                    IX+6      3   parameter
+
+
+; Stack Frame Size: 25 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF ___print_putch:ROM
+	XREF _strlen:ROM
+	XREF ___print_len:ROM
+	XREF ___print_fmt:ROM
+	XREF _abs:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XDEF ___print_sendstring
+	END

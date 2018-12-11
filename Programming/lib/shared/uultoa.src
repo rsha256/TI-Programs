@@ -1,0 +1,326 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UULTOA.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	
+;    9	#ifndef _PTR_
+;   10	#define _PTR_ *
+;   11	#endif
+;   12	
+;   13	/*************************************************
+;   14	*
+;   15	* _u_ultoa - convert an unsigned long to a number
+;   16	*	    of base rad
+;   17	*
+;   18	* Inputs:
+;   19	*	ulg - unsigned long to be converted
+;   20	*	str - target char array
+;   21	*	rad - radix
+;   22	*	fmt - format structure with conversion info
+;   23	*
+;   24	* Returns:
+;   25	*	next address past the end of the string
+;   26	*
+;   27	*************************************************/
+;   28	
+;   29	void __print_sendstring(char *sp);
+;   30	
+;   31	#ifndef _MULTI_THREAD
+;   32	void _u_ultoa(unsigned long n)
+;   33	#else
+;   34	void _mt_ultoa(unsigned long n,char* __print_buff,struct fmt_type* print_fmt)
+;   35	#define __print_fmt (*print_fmt)
+;   36	#endif
+;   37	{
+__u_ultoa:
+	LD	HL,-22
+	CALL	__frameset
+;   38	  unsigned char a;
+;   39	  unsigned char t;
+;   40	  char _PTR_ s = __print_buff;
+	LD	BC,___print_buff
+	LD	(IX+-3),BC
+;   41	  unsigned char nz = (n != 0);
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__lcmpzero
+	JR	Z,L__1
+	LD	A,1
+	JR	L__2
+L__1:
+	XOR	A,A
+L__2:
+	LD	(IX+-7),A
+;   42	  char rad;
+;   43	
+;   44	  a = 'A';
+	LD	(IX+-5),65
+;   45	  switch (__print_fmt.type)
+	LD	A,(___print_fmt+4)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	CALL	__case8
+L__3:
+	DW	7
+	DB	88
+	DW24	L_8	
+
+	DB	100
+	DW24	L_1	
+
+	DB	105
+	DW24	L_2	
+
+	DB	111
+	DW24	L_4	
+
+	DB	112
+	DW24	L_6	
+
+	DB	117
+	DW24	L_3	
+
+	DB	120
+	DW24	L_5	
+
+	DW24	L_0	
+
+;   46	  {
+;   47	  default:
+L_0:
+;   48	  case 'd':
+L_1:
+;   49	  case 'i':
+L_2:
+;   50	  case 'u':
+L_3:
+;   51	    rad = 10;
+	LD	(IX+-4),10
+;   52	    break;
+	JR	L_14
+;   53	  case 'o':
+L_4:
+;   54	    rad = 8;
+	LD	(IX+-4),8
+;   55	    break;
+	JR	L_14
+;   56	  case 'x':
+L_5:
+;   57	  case 'p':
+L_6:
+;   58	    if ( !(__print_fmt.flags&FMT_FLAG_UPPERCASE))
+	LD	A,(___print_fmt+1)
+	AND	A,32
+	JR	NZ,L_8
+;   59	      a = 'a';
+	LD	(IX+-5),97
+;   60	    // Fall into next case
+;   61	  case 'X':
+L_8:
+;   62	    rad = 16;
+	LD	(IX+-4),16
+;   63	    break;
+;   64	  }
+;   65	
+;   66	  do
+L_14:
+;   67	    {	/* generate digits in reverse order */
+;   68	    t = n % (unsigned char)rad;
+	UEXT	HL
+	LD	L,(IX+-4)
+	LD	BC,HL
+	LD	A,H
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__lremu
+	LD	BC,HL
+	LD	(IX+-6),C
+;   69	    if (t > 9)
+	LD	A,9
+	CP	A,(IX+-6)
+	JR	NC,L_13
+;   70	      *(s++) = (t - (unsigned char)10) + a;
+	LD	BC,(IX+-3)
+	LD	(IX+-10),BC
+	LD	A,(IX+-6)
+	ADD	A,-10
+	ADD	A,(IX+-5)
+	LD	HL,BC
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   71	    else
+	JR	L_15
+L_13:
+;   72	      *(s++) = t + (unsigned char)'0';
+	LD	BC,(IX+-3)
+	LD	(IX+-13),BC
+	LD	A,(IX+-6)
+	ADD	A,48
+	LD	HL,BC
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   73	    }  while (n /= rad);
+L_15:
+	LD	A,(IX+-4)
+	SEXT	HL
+	LD	L,(IX+-4)
+	LD	BC,HL
+	LD	A,H
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__ldivu
+	LD	(IX+6),HL
+	LD	(IX+9),E
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__lcmpzero
+	JR	NZ,L_14
+;   74	
+;   75	  while (s - __print_buff < (unsigned char) __print_fmt.precision) {
+	JR	L_18
+L_19:
+;   76	    *(s++) = '0';
+	LD	BC,(IX+-3)
+	LD	(IX+-16),BC
+	LD	HL,BC
+	LD	(HL),48
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   77	  }
+L_18:
+	LD	A,(___print_fmt+6)
+	UEXT	HL
+	LD	L,A
+	LD	DE,HL
+	LD	HL,(IX+-3)
+	OR	A,A
+	LD	BC,___print_buff
+	SBC	HL,BC
+	OR	A,A
+	SBC	HL,DE
+	JP	M,L_19
+;   78	  if (__print_fmt.flags & FMT_FLAG_POUND) {
+	LD	A,(___print_fmt+1)
+	AND	A,8
+	JR	Z,L_31
+;   79	    if (nz) {
+	LD	A,(IX+-7)
+	OR	A,A
+	JR	Z,L_31
+;   80	      if (rad == (char)16) {
+	LD	A,(IX+-4)
+	CP	A,16
+	JR	NZ,L_26
+;   81		*(s++) = ('X'-'A')+a;
+	LD	BC,(IX+-3)
+	LD	(IX+-19),BC
+	LD	A,(IX+-5)
+	ADD	A,23
+	LD	HL,BC
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   82		*(s++) = '0';
+	LD	HL,BC
+	LD	(HL),48
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   83	      }
+;   84	      else if (rad == (char)8) {
+	JR	L_31
+L_26:
+	LD	A,(IX+-4)
+	CP	A,8
+	JR	NZ,L_31
+;   85		*(s++) = '0';
+	LD	BC,(IX+-3)
+	LD	(IX+-22),BC
+	LD	HL,BC
+	LD	(HL),48
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   86	      }
+;   87	    }
+;   88	  }
+L_31:
+;   89	
+;   90	  // ISO Spec:  If a precision is specified  the zero flag is ignored
+;   91	  if (__print_fmt.precision )
+	LD	A,(___print_fmt+6)
+	OR	A,A
+	JR	Z,L_32
+;   92	    __print_fmt.flags &= ~FMT_FLAG_PAD_ZERO;
+	LD	A,(___print_fmt+1)
+	RES	6,A
+	LD	(___print_fmt+1),A
+L_32:
+;   93	
+;   94	  *s = '\0';
+	LD	HL,(IX+-3)
+;   95	
+;   96	  _u_reverse(__print_buff);
+	LD	BC,___print_buff
+	PUSH	BC
+	LD	(HL),0
+	CALL	__u_reverse
+	POP	BC
+;   97	#ifndef _MULTI_THREAD
+;   98	  __print_sendstring(__print_buff);
+	LD	BC,___print_buff
+	PUSH	BC
+	CALL	___print_sendstring
+	POP	BC
+;   99	#endif
+;  100	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_ultoa ***************************
+;Name                         Addr/Register   Size   Type
+;___print_sendstring                 IMPORT  -----   function
+;__u_reverse                         IMPORT  -----   function
+;___print_fmt                        IMPORT     19   variable
+;___print_buff                       IMPORT  unknown variable
+;nz                                    IX-7      1   variable
+;t                                     IX-6      1   variable
+;a                                     IX-5      1   variable
+;rad                                   IX-4      1   variable
+;s                                     IX-3      3   variable
+;n                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 34 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF ___print_sendstring:ROM
+	XREF __u_reverse:ROM
+	XREF ___print_buff:ROM
+	XREF ___print_fmt:ROM
+	XREF __ldivu:ROM
+	XREF __lremu:ROM
+	XREF __frameset:ROM
+	XREF __lcmpzero:ROM
+	XREF __case8:ROM
+	XDEF __u_ultoa
+	END

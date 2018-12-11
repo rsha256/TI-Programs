@@ -1,0 +1,125 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\REALLOC.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by			*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	#include <stddef.h>
+;   10	#include <string.h>
+;   11	#include <stdlib.h>
+;   12	#include <format.h>
+;   13	
+;   14	/*************************************************
+;   15	*
+;   16	* realloc - change the size of an allocated block
+;   17	*
+;   18	* Inputs:
+;   19	*	ptr - pointer to allocated memory
+;   20	*	size - new size of memory
+;   21	*
+;   22	* Returns:
+;   23	*	pointer to block - may have changed
+;   24	*
+;   25	*************************************************/
+;   26	void *realloc(void *ptr,size_t size) {
+_realloc:
+	LD	HL,-6
+	CALL	__frameset
+;   27		HEADER *h;
+;   28		void *p;
+;   29	
+;   30		if (ptr) {
+	LD	HL,(IX+6)
+	CALL	__icmpzero
+	JR	Z,L_5
+;   31			h = (HEADER *)((char *)ptr - sizeof(HEADER));
+	LD	IY,(IX+6)
+	LEA	BC,IY+-6
+	LD	(IX+-6),BC
+;   32			if (h->s.size >= (size+sizeof(HEADER))) {
+	LD	IY,(IX+9)
+	LEA	BC,IY+6
+	LD	IY,(IX+-6)
+	LD	HL,(IY+3)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_2
+;   33				return(ptr);
+	LD	HL,(IX+6)
+	JR	L_6
+;   34			}
+L_2:
+;   35	
+;   36			if (p = malloc(size)) {
+	LD	BC,(IX+9)
+	PUSH	BC
+	CALL	_malloc
+	POP	BC
+	LD	(IX+-3),HL
+	CALL	__icmpzero
+	JR	Z,L_3
+;   37				memcpy(p,ptr,size);
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;   38				free(ptr);
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_free
+	POP	BC
+;   39			}
+L_3:
+;   40			return(p);
+	LD	HL,(IX+-3)
+	JR	L_6
+;   41		}
+L_5:
+;   42		return(malloc(size));
+	LD	BC,(IX+9)
+	PUSH	BC
+	CALL	_malloc
+	POP	BC
+;   43	}
+L_6:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _realloc ***************************
+;Name                         Addr/Register   Size   Type
+;_free                               IMPORT  -----   function
+;_memcpy                             IMPORT  -----   function
+;_malloc                             IMPORT  -----   function
+;h                                     IX-6      3   variable
+;p                                     IX-3      3   variable
+;size                                  IX+9      3   parameter
+;ptr                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _free:ROM
+	XREF _malloc:ROM
+	XREF _memcpy:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _realloc
+	END

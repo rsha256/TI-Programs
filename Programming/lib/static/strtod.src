@@ -1,0 +1,534 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\STRTOD.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	#include <stdlib.h>
+;   10	#include <ctype.h>
+;   11	#include <stdio.h>
+;   12	#include <limits.h>
+;   13	#include <stddef.h>
+;   14	#include <math.h>
+;   15	#include <errno.h>
+;   16	//#include <float.h>
+;   17	
+;   18	
+;   19	/*************************************************
+;   20	*
+;   21	* strtod - string to double conversion
+;   22	*
+;   23	* Inputs:
+;   24	*	str - pointer to the character string
+;   25	*	endptr - pointer to pointer to char to
+;   26	*		 put address of first char past
+;   27	*		 the end of the string -- or NULL
+;   28	* Returns:
+;   29	*	the value of the number
+;   30	*
+;   31	*************************************************/
+;   32	double strtod(char * str,char ** endptr)
+;   33	{
+_strtod:
+	LD	HL,-23
+	CALL	__frameset
+;   34	  union
+;   35	  {
+;   36	    double d;
+;   37	    unsigned short s[2];
+;   38	  }val;
+;   39	  int frac = 0;
+	LD	BC,0
+	LD	(IX+-12),BC
+;   40	  int exp = 0;
+	LD	(IX+-7),BC
+;   41	  signed char sign = 1;
+	LD	(IX+-9),1
+;   42	  signed char exp_sign = 1;
+	LD	(IX+-8),1
+;   43	  double temp;
+;   44	
+;   45	  while (isspace(*str))
+	JR	L_0
+L_1:
+;   46	    ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_0:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_1
+;   47	
+;   48	  if (*str == '-') {
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,45
+	SBC	HL,BC
+	JR	NZ,L_4
+;   49	    sign = -1;
+	LD	(IX+-9),255
+;   50	    ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   51	  }
+;   52	  else if (*str == '+')
+	JR	L_6
+L_4:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,43
+	SBC	HL,BC
+	JR	NZ,L_6
+;   53	    ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_6:
+;   54	
+;   55	  val.d = 0;
+	LD	BC,0
+	LD	(IX+-4),BC
+	XOR	A,A
+	LD	(IX+-1),A
+;   56	  while (*str >= '0' && *str <= '9') {
+	JR	L_8
+L_9:
+;   57	    val.d = val.d * 10 + (*str - '0');
+	LD	HL,2097152
+	LD	E,65
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fmul
+	LD	(IX+-20),A
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	D,A
+	SEXT	HL
+	LD	L,D
+	LD	IY,HL
+	LD	(IX+-23),BC
+	LEA	BC,IY+-48
+	CALL	__itol
+	CALL	__ltof
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-23)
+	LD	A,(IX+-20)
+	CALL	__fadd
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   58	    ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   59	  }
+L_8:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,48
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_14
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	HL,57
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_9
+L_14:
+;   60	
+;   61	  if (*str == '.') {
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,46
+	SBC	HL,BC
+	JR	NZ,L_24
+;   62	    ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   63	    while (*str >= '0' && *str <= '9') {
+	JR	L_11
+L_12:
+;   64	      val.d = val.d * 10 + (*str - '0');
+	LD	HL,2097152
+	LD	E,65
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fmul
+	LD	(IX+-16),A
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	D,A
+	SEXT	HL
+	LD	L,D
+	LD	IY,HL
+	LD	(IX+-19),BC
+	LEA	BC,IY+-48
+	CALL	__itol
+	CALL	__ltof
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-19)
+	LD	A,(IX+-16)
+	CALL	__fadd
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   65	      ++frac;
+	LD	BC,(IX+-12)
+	INC	BC
+	LD	(IX+-12),BC
+;   66	      ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   67	    }
+L_11:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,48
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_24
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	HL,57
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_12
+;   68	  }
+L_24:
+;   69	
+;   70	  if (*str == 'e' || *str == 'E') {
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,101
+	SBC	HL,BC
+	JR	Z,L_23
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,69
+	SBC	HL,BC
+	JR	NZ,L_26
+L_23:
+;   71	    ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   72	    if (*str == '-') {
+	LD	HL,BC
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,45
+	SBC	HL,BC
+	JR	NZ,L_18
+;   73	      exp_sign = -1;
+	LD	(IX+-8),255
+;   74	      ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   75	    }
+;   76	    else if (*str == '+') {
+	JR	L_20
+L_18:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,43
+	SBC	HL,BC
+	JR	NZ,L_20
+;   77	      exp_sign = 1;
+	LD	(IX+-8),1
+;   78	      ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   79	    }
+;   80	    while (*str >= '0' && *str <= '9') {
+	JR	L_20
+L_21:
+;   81	     exp = exp * 10 + (*str - '0');
+	LD	HL,(IX+-7)
+	LD	A,10
+	CALL	__imul_b
+	LD	IY,(IX+6)
+	LD	A,(IY)
+	LD	B,A
+	LD	DE,HL
+	SEXT	HL
+	LD	L,B
+	LD	IY,HL
+	LEA	BC,IY+-48
+	LD	HL,DE
+	ADD	HL,BC
+	LD	(IX+-7),HL
+;   82	      ++str;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   83	    }
+L_20:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,48
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_26
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	HL,57
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_21
+;   84	  }
+L_26:
+;   85	
+;   86	  if (endptr)
+	LD	HL,(IX+9)
+	CALL	__icmpzero
+	JR	Z,L_28
+;   87	    *endptr = str;
+	LD	HL,(IX+9)
+	LD	BC,(IX+6)
+	LD	(HL),BC
+L_28:
+;   88	
+;   89	  if (exp_sign < 0 )
+	LD	A,(IX+-8)
+	OR	A,A
+	JP	P,L_29
+;   90	     exp = -exp;
+	LD	HL,(IX+-7)
+	CALL	__ineg
+	LD	(IX+-7),HL
+L_29:
+;   91	  exp -= frac;
+	LD	BC,(IX+-12)
+	LD	HL,(IX+-7)
+	OR	A,A
+	SBC	HL,BC
+	LD	(IX+-7),HL
+;   92	  if (val.d != 0)
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_32
+	JR	L_42
+;   93	  {
+;   94	    while (exp > 0 )
+L_33:
+;   95	    {
+;   96	       val.d  *= 10.0;
+	LD	HL,2097152
+	LD	E,65
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fmul
+	LD	(IX+-4),BC
+;   97	       if (val.s[1] == 0x7f80)
+	LEA	HL,IX+-2
+	LD	(IX+-1),A
+	LD	BC,(HL)
+	CALL	__stoiu
+	OR	A,A
+	LD	BC,32640
+	SBC	HL,BC
+	JR	NZ,L_31
+;   98	       {
+;   99	         errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;  100	         val.d = HUGE_VAL;
+	LD	BC,(__huge_val)
+	LD	A,(__huge_val+3)
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;  101	         break;
+	JR	L_36
+;  102	       }
+L_31:
+;  103	       --exp;
+	LD	BC,(IX+-7)
+	DEC	BC
+	LD	(IX+-7),BC
+;  104	    }
+L_32:
+	LD	BC,(IX+-7)
+	OR	A,A
+	SBC	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_33
+;  105	    while (exp < 0 )
+	JR	L_36
+L_37:
+;  106	    {
+;  107	       val.d  *= .1;
+	LD	HL,13421773
+	LD	E,61
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fmul
+	LD	(IX+-4),BC
+;  108	       if (val.s[1] == 0)
+	LEA	HL,IX+-2
+	LD	(IX+-1),A
+	LD	HL,(HL)
+	CALL	__scmpzero
+	JR	NZ,L_35
+;  109	       { 
+;  110	         errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;  111	         break;
+	JR	L_40
+;  112	       }
+L_35:
+;  113	       ++exp;
+	LD	BC,(IX+-7)
+	INC	BC
+	LD	(IX+-7),BC
+;  114	    }
+L_36:
+	LD	HL,(IX+-7)
+	CALL	__icmpzero
+	CALL	__setflag
+	JP	M,L_37
+L_40:
+;  115	    if (sign < 0 )
+	LD	A,(IX+-9)
+	OR	A,A
+	JP	P,L_42
+;  116	       val.s[1] |= 0x8000;
+	LEA	IY,IX+-2
+	LD	(IX+-15),IY
+	LD	HL,(IX+-15)
+	LD	HL,(HL)
+	LD.LIS	BC,32768
+	CALL	__sor
+	LD	BC,HL
+	LD	HL,(IX+-15)
+	LD	(HL),C
+	INC	HL
+	LD	(HL),B
+;  117	  }
+L_42:
+;  118	  return val.d;
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+;  119	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _strtod ***************************
+;Name                         Addr/Register   Size   Type
+;__huge_val                          IMPORT      4   variable
+;_errno                              IMPORT      3   variable
+;_isspace                            IMPORT  -----   function
+;frac                                 IX-12      3   variable
+;sign                                  IX-9      1   variable
+;exp_sign                              IX-8      1   variable
+;exp                                   IX-7      3   variable
+;val                                   IX-4      4   variable
+;endptr                                IX+9      3   parameter
+;str                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 35 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _errno:ROM
+	XREF _isspace:ROM
+	XREF __huge_val:ROM
+	XREF __ineg:ROM
+	XREF __sor:ROM
+	XREF __fadd:ROM
+	XREF __fmul:ROM
+	XREF __fcmp:ROM
+	XREF __ltof:ROM
+	XREF __stoiu:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __scmpzero:ROM
+	XREF __icmpzero:ROM
+	XREF __imul_b:ROM
+	XDEF _strtod
+	END

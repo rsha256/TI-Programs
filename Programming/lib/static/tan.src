@@ -1,0 +1,330 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\TAN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	/*
+;   10		floating point tangent
+;   11	
+;   12		A series is used after range reduction.
+;   13		Coefficients are #4285 from Hart & Cheney. (19.74D)
+;   14	*/
+;   15	
+;   16	#include <errno.h>
+;   17	#include <math.h>
+;   18	
+;   19	#define invpi 	1.27323954473516
+;   20	#define p0 	-0.130682026475483e+5
+;   21	#define p1	0.105597090171495e+4
+;   22	#define p2	-0.155068565348327e+2
+;   23	#define p3	0.342255438724100e-1
+;   24	#define p4	0.338663864267717e-4
+;   25	#define q0	-0.166389523894712e+5
+;   26	#define q1	0.476575136291648e+4
+;   27	#define q2	-0.155503316403171e+3
+;   28	
+;   29	double tan(double arg)
+;   30	{
+_tan:
+	LD	HL,-26
+	CALL	__frameset
+;   31		double sign, temp, e, x, xsq;
+;   32		int flag, i;
+;   33	
+;   34		flag = 0;
+	LD	BC,0
+	LD	(IX+-19),BC
+;   35		sign = 1.;
+	LD	BC,8388608
+	LD	(IX+-4),BC
+	LD	A,63
+	LD	(IX+-1),A
+;   36		if(arg < 0.){
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_1
+;   37			arg = -arg;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   38			sign = -1.;
+	LD	BC,8388608
+	LD	(IX+-4),BC
+	LD	A,191
+	LD	(IX+-1),A
+;   39		}
+L_1:
+;   40		arg = arg*invpi;   /*overflow?*/
+	LD	HL,10680707
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fmul
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   41	        x = modf(arg,(double *)&e);
+	PEA	IX+-26
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-8),HL
+	LD	(IX+-5),E
+;   42		i = e;
+	LD	BC,(IX+-26)
+	LD	A,(IX+-23)
+	CALL	__ftol
+	LD	(IX+-22),BC
+;   43		switch(i%4) {
+	LD	BC,4
+	LD	HL,(IX+-22)
+	CALL	__irems
+	CALL	__seqcase
+L__1:
+	DW	4
+	DW	0
+	DB	0
+	DW24	L_6	
+
+	DW24	L_2	
+
+	DW24	L_3	
+
+	DW24	L_4	
+
+	DW24	L_6	
+
+;   44		case 1:
+L_2:
+;   45			x = 1. - x;
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fsub
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   46			flag = 1;
+	LD	BC,1
+	LD	(IX+-19),BC
+;   47			break;
+	JR	L_6
+;   48	
+;   49		case 2:
+L_3:
+;   50			sign = - sign;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fneg
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   51			flag = 1;
+	LD	BC,1
+	LD	(IX+-19),BC
+;   52			break;
+	JR	L_6
+;   53	
+;   54		case 3:
+L_4:
+;   55			x = 1. - x;
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fsub
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   56			sign = - sign;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fneg
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   57			break;
+;   58	
+;   59		case 0:
+;   60			break;
+;   61		}
+L_6:
+;   62	
+;   63		xsq = x*x;
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	CALL	__fmul
+	LD	(IX+-12),BC
+	LD	(IX+-9),A
+;   64		temp = ((((p4*xsq+p3)*xsq+p2)*xsq+p1)*xsq+p0)*x;
+	LD	HL,920513
+	LD	E,56
+	CALL	__fmul
+	LD	HL,798741
+	LD	E,61
+	CALL	__fadd
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	CALL	__fmul
+	LD	HL,7871510
+	LD	E,193
+	CALL	__fadd
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	CALL	__fmul
+	LD	HL,8650514
+	LD	E,68
+	CALL	__fadd
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	CALL	__fmul
+	LD	HL,4993232
+	LD	E,198
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	(IX+-16),BC
+	LD	(IX+-13),A
+;   65		temp = temp/(((1.0*xsq+q2)*xsq+q1)*xsq+q0);
+	LD	BC,(IX+-12)
+	LD	A,(IX+-9)
+	LD	HL,1802457
+	LD	E,195
+	CALL	__fadd
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	CALL	__fmul
+	LD	HL,9760259
+	LD	E,69
+	CALL	__fadd
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	CALL	__fmul
+	LD	HL,8519144
+	LD	E,198
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-16)
+	LD	A,(IX+-13)
+	CALL	__fdiv
+	LD	(IX+-16),BC
+	LD	(IX+-13),A
+;   66	
+;   67		if(flag == 1) {
+	LD	HL,(IX+-19)
+	OR	A,A
+	LD	BC,1
+	SBC	HL,BC
+	JR	NZ,L_12
+;   68			if(temp == 0.) {
+	LD	HL,(IX+-16)
+	LD	E,(IX+-13)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_10
+;   69				errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;   70				if (sign>0)
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	OR	A,A
+	SBC	HL,HL
+	LD	E,0
+	CALL	__fcmp
+	JP	P,L_8
+;   71					return(HUGE_VAL);
+	LD	HL,(__huge_val)
+	LD	A,(__huge_val+3)
+	LD	E,A
+	JR	L_13
+L_8:
+;   72				return(-HUGE_VAL);
+	LD	BC,(__huge_val)
+	LD	A,(__huge_val+3)
+	CALL	__fneg
+	LD	E,A
+	LD	HL,BC
+	JR	L_13
+;   73			}
+L_10:
+;   74			temp = 1./temp;
+	LD	HL,(IX+-16)
+	LD	E,(IX+-13)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fdiv
+	LD	(IX+-16),BC
+	LD	(IX+-13),A
+;   75		}
+L_12:
+;   76		return(sign*temp);
+	LD	HL,(IX+-16)
+	LD	E,(IX+-13)
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+;   77	}
+L_13:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _tan ***************************
+;Name                         Addr/Register   Size   Type
+;__huge_val                          IMPORT      4   variable
+;_errno                              IMPORT      3   variable
+;_modf                               IMPORT  -----   function
+;e                                    IX-26      4   variable
+;i                                    IX-22      3   variable
+;flag                                 IX-19      3   variable
+;temp                                 IX-16      4   variable
+;xsq                                  IX-12      4   variable
+;x                                     IX-8      4   variable
+;sign                                  IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 38 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _modf:ROM
+	XREF __huge_val:ROM
+	XREF _errno:ROM
+	XREF __irems:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __ftol:ROM
+	XREF __frameset:ROM
+	XREF __seqcase:ROM
+	XDEF _tan
+	END

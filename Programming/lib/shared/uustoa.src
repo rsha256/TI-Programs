@@ -1,0 +1,64 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UUSTOA.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	
+;    9	/*************************************************
+;   10	*
+;   11	* _u_ustoa - convert an unsigned short to a number of base rad
+;   12	*
+;   13	* Inputs:
+;   14	*	int - int to be converted
+;   15	*	str - target char array
+;   16	*	rad - radix
+;   17	*	fmt - format structure with conversion info
+;   18	*
+;   19	* Returns:
+;   20	*	next address past the end of the string
+;   21	*
+;   22	*************************************************/
+;   23	#ifndef _MULTI_THREAD
+;   24	void _u_ustoa(unsigned short n)
+;   25	{
+__u_ustoa:
+	CALL	__frameset0
+;   26	  _u_ultoa((unsigned long)n);
+	LD	BC,(IX+6)
+	CALL	__stoiu
+	LD	C,0
+	LD	B,0
+	PUSH	BC
+	PUSH	HL
+	CALL	__u_ultoa
+	POP	BC
+	POP	BC
+;   27	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_ustoa ***************************
+;Name                         Addr/Register   Size   Type
+;__u_ultoa                           IMPORT  -----   function
+;n                                     IX+6      2   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __u_ultoa:ROM
+	XREF __stoiu:ROM
+	XREF __frameset0:ROM
+	XDEF __u_ustoa
+	END

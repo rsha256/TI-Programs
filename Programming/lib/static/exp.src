@@ -1,0 +1,234 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\EXP.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C) 2000-2008 Zilog, Inc.		*/
+;    4	/*									*/
+;    5	/************************************************************************/
+;    6	/*
+;    7		exp returns the exponential function of its
+;    8		floating-point argument.
+;    9	
+;   10		The coefficients are #1069 from Hart and Cheney. (22.35D)
+;   11	*/
+;   12	
+;   13	#include <errno.h>
+;   14	#include <math.h>
+;   15	
+;   16	#define	p0	0.20803843466947e7
+;   17	#define	p1	0.30286971697440e5
+;   18	#define	p2	0.60614853300611e2
+;   19	#define	q0	0.60027203602388e7
+;   20	#define	q1	0.32772515180829e6
+;   21	#define	q2	0.17492876890931e4
+;   22	#define	log2e	1.44269504088896
+;   23	#define	sqrt2	1.41421356237310
+;   24	#define	maxf	10000
+;   25	
+;   26	double exp(double arg) {
+_exp:
+	LD	HL,-23
+	CALL	__frameset
+;   27		double fraction;
+;   28		double temp1, temp2, xsq;
+;   29		int ent;
+;   30	
+;   31		if ( arg == 0.0 ){
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_2
+;   32			return 1.0;
+	LD	HL,8388608
+	LD	E,63
+	JR	L_6
+;   33		}
+L_2:
+;   34		if ( arg < -maxf ){
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,1851392
+	LD	A,198
+	CALL	__fcmp
+	JP	P,L_4
+	OR	A,A
+;   35			return 0.0;
+	SBC	HL,HL
+	LD	E,0
+	JR	L_6
+;   36		}
+L_4:
+;   37		if ( arg > maxf ){
+	LD	HL,1851392
+	LD	E,70
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_5
+;   38			errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;   39			return HUGE_VAL ;
+	LD	HL,(__huge_val)
+	LD	A,(__huge_val+3)
+	LD	E,A
+	JR	L_6
+;   40		}
+L_5:
+;   41		arg *= log2e;
+	LD	HL,12102203
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fmul
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   42		ent = floor( arg );
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_floor
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	CALL	__ftol
+	LD	(IX+-11),BC
+;   43		fraction = arg - ent - 0.5;
+	CALL	__itol
+	CALL	__ltof
+	OR	A,A
+	SBC	HL,HL
+	LD	E,63
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fsub
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   44		xsq = fraction * fraction;
+	LD	E,(IX+-5)
+	LD	A,(IX+-5)
+	LD	HL,BC
+	CALL	__fmul
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   45		temp1 = ((p2 * xsq + p1) * xsq + p0) * fraction;
+	LD	HL,7501212
+	LD	E,66
+	CALL	__fmul
+	LD	HL,15506930
+	LD	E,70
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,16643075
+	LD	E,73
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	(IX+-15),BC
+	LD	(IX+-12),A
+;   46		temp2 = ((1.0 * xsq + q2) * xsq + q1) * xsq + q0;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	LD	HL,14330165
+	LD	E,68
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,10487205
+	LD	E,72
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,12005441
+	LD	E,74
+	CALL	__fadd
+	LD	(IX+-19),BC
+	LD	(IX+-16),A
+;   47		return ldexp( sqrt2 * (temp2+temp1) / (temp2-temp1), ent );
+	LD	DE,(IX+-11)
+	PUSH	DE
+	LD	HL,(IX+-15)
+	LD	E,(IX+-12)
+	LD	A,(IX+-16)
+	CALL	__fadd
+	LD	HL,11863283
+	LD	E,63
+	CALL	__fmul
+	LD	(IX+-22),BC
+	LD	(IX+-23),A
+	LD	A,(IX+-16)
+	LD	BC,(IX+-19)
+	LD	HL,(IX+-15)
+	LD	E,(IX+-12)
+	CALL	__fsub
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-22)
+	LD	A,(IX+-23)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_ldexp
+	POP	BC
+	POP	BC
+	POP	BC
+;   48	}
+L_6:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _exp ***************************
+;Name                         Addr/Register   Size   Type
+;_ldexp                              IMPORT  -----   function
+;_floor                              IMPORT  -----   function
+;__huge_val                          IMPORT      4   variable
+;_errno                              IMPORT      3   variable
+;temp2                                IX-19      4   variable
+;temp1                                IX-15      4   variable
+;ent                                  IX-11      3   variable
+;fraction                              IX-8      4   variable
+;xsq                                   IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 35 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _floor:ROM
+	XREF _ldexp:ROM
+	XREF __huge_val:ROM
+	XREF _errno:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fcmp:ROM
+	XREF __ftol:ROM
+	XREF __ltof:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XDEF _exp
+	END

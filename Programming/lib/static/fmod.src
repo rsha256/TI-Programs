@@ -1,0 +1,135 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FMOD.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C) 2000-2008 Zilog, Inc.		*/
+;    4	/*									*/
+;    5	/*		        San Jose, California     			*/
+;    6	/*									*/
+;    7	/************************************************************************/
+;    8	#include <math.h>
+;    9	
+;   10	/*************************************************
+;   11	*
+;   12	* fmod - modulo
+;   13	*
+;   14	* Inputs:
+;   15	*	x	- dividend
+;   16	*	y	- divisor
+;   17	*
+;   18	* Returns:
+;   19	*	x mod y
+;   20	*
+;   21	*************************************************/
+;   22	
+;   23	double fmod(double x, double y) {
+_fmod:
+	LD	HL,-8
+	CALL	__frameset
+;   24		double z;
+;   25		double result;
+;   26	
+;   27		if (y == 0.0) {
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_1
+	OR	A,A
+;   28			return 0;
+	SBC	HL,HL
+	LD	E,0
+	JR	L_5
+;   29		}
+L_1:
+;   30	
+;   31		modf(x/y,&z);
+	PEA	IX+-8
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+;   32		result = x - z*y;
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fsub
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   33	
+;   34		if ((x < 0) && (result > 0)) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	XOR	A,A
+	LD	BC,0
+	CALL	__fcmp
+	JP	P,L_4
+	OR	A,A
+	SBC	HL,HL
+	LD	E,0
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fcmp
+	JP	P,L_4
+;   35			result = -result;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fneg
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   36		}
+L_4:
+;   37	
+;   38		return(result);
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+;   39	}
+L_5:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fmod ***************************
+;Name                         Addr/Register   Size   Type
+;_modf                               IMPORT  -----   function
+;z                                     IX-8      4   variable
+;result                                IX-4      4   variable
+;y                                    IX+12      4   parameter
+;x                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 26 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _modf:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __frameset:ROM
+	XDEF _fmod
+	END

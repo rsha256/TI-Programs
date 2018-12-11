@@ -1,0 +1,71 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\USTOA.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	
+;    9	#ifndef _PTR_
+;   10	#define _PTR_ *
+;   11	#endif
+;   12	
+;   13	/*************************************************
+;   14	*
+;   15	* _u_stoa - convert a short to a number of base rad
+;   16	*
+;   17	* Inputs:
+;   18	*	int - int to be converted
+;   19	*	str - target char array
+;   20	*	rad - radix
+;   21	*	fmt - format structure with conversion info
+;   22	*
+;   23	* Returns:
+;   24	*	next address past the end of the string
+;   25	*
+;   26	*************************************************/
+;   27	#ifndef _MULTI_THREAD
+;   28	void _u_stoa(short n)
+;   29	{
+__u_stoa:
+	CALL	__frameset0
+;   30	  _u_ltoa((long)n);
+	LD	A,(IX+7)
+	RLA	
+	SBC	A,A
+	LD	BC,(IX+6)
+	CALL	__stoi
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	HL
+	CALL	__u_ltoa
+	POP	BC
+	POP	BC
+;   31	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_stoa ***************************
+;Name                         Addr/Register   Size   Type
+;__u_ltoa                            IMPORT  -----   function
+;n                                     IX+6      2   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __u_ltoa:ROM
+	XREF __stoi:ROM
+	XREF __frameset0:ROM
+	XDEF __u_stoa
+	END

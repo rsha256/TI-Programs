@@ -1,0 +1,439 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\GAMMA.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*
+;    2	 * gamma.c  - public domain implementation of function tgamma(3m)
+;    3	 * reference - Haruhiko Okumura: C-gengo niyoru saishin algorithm jiten
+;    4	 *  (New Algorithm handbook in C language) (Gijyutsu hyouronsha, Tokyo, 1991) [in Japanese]
+;    5	 *  http://oku.edu.mie-u.ac.jp/~okumura/algo/
+;    6	*/
+;    7	
+;    8	#include <math.h>
+;    9	#include <errno.h>
+;   10	
+;   11	#define N       8
+;   12	
+;   13	#define B0  1                 /* Bernoulli numbers */
+;   14	#define B1  (-1.0 / 2.0)
+;   15	#define B2  ( 1.0 / 6.0)
+;   16	#define B4  (-1.0 / 30.0)
+;   17	#define B6  ( 1.0 / 42.0)
+;   18	#define B8  (-1.0 / 30.0)
+;   19	#define B10 ( 5.0 / 66.0)
+;   20	#define B12 (-691.0 / 2730.0)
+;   21	#define B14 ( 7.0 / 6.0)
+;   22	#define B16 (-3617.0 / 510.0)
+;   23	
+;   24	static double loggamma(double x) { /* the natural logarithm of the Gamma function. */
+_loggamma:
+	LD	HL,-22
+	CALL	__frameset
+;   25	    double v, w;
+;   26	
+;   27	    v = 1;
+	LD	BC,8388608
+	LD	(IX+-8),BC
+	LD	A,63
+	LD	(IX+-5),A
+;   28	    while (x < N) {  v *= x;  x++;  }
+	JR	L_1
+L_2:
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	CALL	__fmul
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	HL,8388608
+	LD	E,63
+	CALL	__fadd
+	LD	(IX+6),BC
+	LD	(IX+9),A
+L_1:
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	LD	A,65
+	CALL	__fcmp
+	JP	M,L_2
+;   29	    w = 1 / (x * x);
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fdiv
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   30	    return ((((((((B16 / (16 * 15))  * w + (B14 / (14 * 13))) * w
+;   31	                + (B12 / (12 * 11))) * w + (B10 / (10 *  9))) * w
+;   32	                + (B8  / ( 8 *  7))) * w + (B6  / ( 6 *  5))) * w
+;   33	                + (B4  / ( 4 *  3))) * w + (B2  / ( 2 *  1))) / x
+;   34	                + 0.5 * M_LOG_2M_PI - log(v) - x + (x - 0.5) * log(x);
+	LD	HL,15864886
+	LD	E,188
+	CALL	__fmul
+	LD	HL,13765920
+	LD	E,59
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,16471432
+	LD	E,186
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,6072562
+	LD	E,58
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,1837505
+	LD	E,186
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,5246209
+	LD	E,58
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,3541857
+	LD	E,187
+	CALL	__fadd
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	HL,11184811
+	LD	E,61
+	CALL	__fadd
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__fdiv
+	LD	HL,7028622
+	LD	E,63
+	CALL	__fadd
+	LD	(IX+-12),BC
+	LD	C,(IX+-5)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-8)
+	PUSH	BC
+	LD	(IX+-9),A
+	CALL	_log
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-12)
+	LD	A,(IX+-9)
+	CALL	__fsub
+	LD	(IX+-19),A
+	LD	(IX+-18),BC
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	OR	A,A
+	SBC	HL,HL
+	LD	E,63
+	CALL	__fsub
+	LD	(IX+-15),BC
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	B,A
+	LD	(IX+-22),BC
+	CALL	_log
+	LD	BC,(IX+-22)
+	POP	IY
+	POP	IY
+	LD	A,B
+	LD	BC,(IX+-15)
+	CALL	__fmul
+	LD	E,A
+	LD	A,(IX+-19)
+	LD	HL,BC
+	LD	BC,(IX+-18)
+	CALL	__fadd
+	LD	E,A
+	LD	HL,BC
+;   35	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _loggamma ***************************
+;Name                         Addr/Register   Size   Type
+;_log                                IMPORT  -----   function
+;v                                     IX-8      4   variable
+;w                                     IX-4      4   variable
+;x                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 34 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   36	
+;   37	double tgamma(double x) { /* Gamma function */
+_tgamma:
+	LD	HL,-26
+	CALL	__frameset
+;   38	    if (x == 0.0) { /* Pole Error */
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_17
+;   39	        errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;   40	        return 1/x < 0 ? -HUGE_VAL : HUGE_VAL;
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_7
+	LD	BC,(__huge_val)
+	LD	A,(__huge_val+3)
+	CALL	__fneg
+	LD	(IX+-14),BC
+	LD	(IX+-11),A
+	JR	L_8
+L_7:
+	LD	BC,(__huge_val)
+	LD	A,(__huge_val+3)
+	LD	(IX+-14),BC
+	LD	(IX+-11),A
+L_8:
+	LD	HL,(IX+-14)
+	LD	E,(IX+-11)
+	JR	L_19
+;   41	    }
+L_17:
+;   42	    if (x < 0) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_18
+;   43	        int sign;
+;   44		static double zero = 0.0;
+;   45	        double i, f;
+;   46	        f = modf(-x, &i);
+	PEA	IX+-18
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-10),HL
+	LD	(IX+-7),E
+;   47	        if (f == 0.0) { /* Domain Error */
+	LD	HL,(IX+-10)
+	LD	E,(IX+-7)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_15
+;   48	            errno = EDOM;
+	LD	BC,4
+	LD	(_errno),BC
+;   49	            return zero/zero;
+	LD	HL,(_0zero)
+	LD	A,(_0zero+3)
+	LD	E,A
+	LD	A,(_0zero+3)
+	LD	BC,(_0zero)
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+	JR	L_19
+;   50	        }
+L_15:
+;   51	        sign = (fmod(i, 2.0) != 0.0) ? 1 : -1;
+	LD	C,64
+	LD	B,0
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	C,(IX+-15)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-18)
+	PUSH	BC
+	CALL	_fmod
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	Z,L_13
+	LD	BC,1
+	LD	(IX+-3),BC
+	JR	L_14
+L_13:
+	LD	BC,16777215
+	LD	(IX+-3),BC
+L_14:
+	LD	BC,(IX+-3)
+	LD	(IX+-6),BC
+;   52	        return sign * M_PI / (sin(M_PI * f) * exp(loggamma(1 - x)));
+	CALL	__itol
+	CALL	__ltof
+	LD	HL,4788187
+	LD	E,64
+	CALL	__fmul
+	LD	(IX+-22),A
+	LD	(IX+-21),BC
+	LD	BC,(IX+-10)
+	LD	A,(IX+-7)
+	LD	HL,4788187
+	LD	E,64
+	CALL	__fmul
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	(IX+-26),E
+	LD	(IX+-25),HL
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fsub
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_loggamma
+	POP	BC
+	POP	BC
+	LD	C,E
+	LD	B,0
+	PUSH	BC
+	PUSH	HL
+	CALL	_exp
+	POP	BC
+	POP	BC
+	LD	A,(IX+-26)
+	LD	BC,(IX+-25)
+	CALL	__fmul
+	LD	E,A
+	LD	A,(IX+-22)
+	LD	HL,BC
+	LD	BC,(IX+-21)
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+	JR	L_19
+;   53	    }
+L_18:
+;   54	    return exp(loggamma(x));
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_loggamma
+	POP	BC
+	POP	BC
+	LD	C,E
+	LD	B,0
+	PUSH	BC
+	PUSH	HL
+	CALL	_exp
+	POP	BC
+	POP	BC
+;   55	}
+L_19:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _tgamma ***************************
+;Name                         Addr/Register   Size   Type
+;_exp                                IMPORT  -----   function
+;_sin                                IMPORT  -----   function
+;_fmod                               IMPORT  -----   function
+;_0zero                              STATIC      4   variable
+;_modf                               IMPORT  -----   function
+;__huge_val                          IMPORT      4   variable
+;_errno                              IMPORT      3   variable
+;i                                    IX-18      4   variable
+;temp5                                IX-14      4   variable
+;f                                    IX-10      4   variable
+;sign                                  IX-6      3   variable
+;temp11                                IX-3      3   variable
+;x                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 38 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT DATA
+_0zero:
+	DF	0.0
+	XREF _errno:ROM
+	XREF _modf:ROM
+	XREF _fmod:ROM
+	XREF _log:ROM
+	XREF _exp:ROM
+	XREF _sin:ROM
+	XREF __huge_val:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __ltof:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XDEF _tgamma
+	END

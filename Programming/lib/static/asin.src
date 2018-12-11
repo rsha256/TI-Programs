@@ -1,0 +1,178 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\ASIN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/* Copyright (c) 2000-2008 Zilog, Inc. */
+;    2	
+;    3	/**
+;    4	 * asin(arg) return the arcsin of arg.
+;    5	 * arctan is called after appropriate range reduction.
+;    6	 */
+;    7	
+;    8	#include	<errno.h>
+;    9	#include	<math.h>
+;   10	
+;   11	#define pio2  1.57079632679490
+;   12	
+;   13	double asin(double arg) {
+_asin:
+	LD	HL,-8
+	CALL	__frameset
+;   14	
+;   15		double sign, temp;
+;   16	
+;   17		sign = 1.;
+	LD	BC,8388608
+	LD	(IX+-8),BC
+	LD	A,63
+	LD	(IX+-5),A
+;   18		if(arg < 0) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_2
+;   19			arg = -arg;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   20			sign = -1.;
+	LD	BC,8388608
+	LD	(IX+-8),BC
+	LD	A,191
+	LD	(IX+-5),A
+;   21		}
+L_2:
+;   22	
+;   23		if(arg > 1.) {
+	LD	HL,8388608
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_3
+;   24			errno = EDOM;
+	LD	BC,4
+	LD	(_errno),BC
+	OR	A,A
+;   25			return(0.);
+	SBC	HL,HL
+	LD	E,0
+	JR	L_7
+;   26		}
+L_3:
+;   27	
+;   28		temp = sqrt(1. - arg*arg);
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fsub
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_sqrt
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   29		if(arg > 0.7) {
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	HL,3355443
+	CALL	__fcmp
+	JP	P,L_5
+;   30			temp = pio2 - atan(temp/arg);
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_atan
+	POP	BC
+	POP	BC
+	LD	BC,13176795
+	LD	A,63
+	CALL	__fsub
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   31		} else {
+	JR	L_6
+L_5:
+;   32			temp = atan(arg/temp);
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fdiv
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_atan
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   33		}
+L_6:
+;   34	
+;   35		return(sign*temp);
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+;   36	}
+L_7:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _asin ***************************
+;Name                         Addr/Register   Size   Type
+;_atan                               IMPORT  -----   function
+;_sqrt                               IMPORT  -----   function
+;_errno                              IMPORT      3   variable
+;sign                                  IX-8      4   variable
+;temp                                  IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 20 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _sqrt:ROM
+	XREF _atan:ROM
+	XREF _errno:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __frameset:ROM
+	XDEF _asin
+	END

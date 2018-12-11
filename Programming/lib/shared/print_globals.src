@@ -1,0 +1,47 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\PRINT_GLOBALS.C"
+	.assume ADL=1
+	SEGMENT BSS
+___print_buff:
+	DS	14
+___print_fmt:
+	DS	19
+___print_len:
+	DS	1
+___print_leading_char:
+	DS	1
+___print_out:
+	DS	3
+	SEGMENT DATA
+___print_xputch:
+	DW24	___print_sputch
+	XREF ___print_sputch:ROM
+	XDEF ___print_xputch
+	XDEF ___print_out
+	XDEF ___print_leading_char
+	XDEF ___print_len
+	XDEF ___print_fmt
+	XDEF ___print_buff
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	#include <format.h>
+;    6	
+;    7	void __print_sputch(char ch);
+;    8	
+;    9	/*  Global data used by the printf support functions.                       */
+;   10	/*  The compiler may manipulate this data directly to bypass the runtime    */
+;   11	/*  parsing of (s)printf formats.                                           */
+;   12	char __print_buff[14];
+;   13	struct fmt_type __print_fmt;
+;   14	unsigned char __print_len;
+;   15	char __print_leading_char;  // Initial +, -, or space for number
+;   16	char *__print_out;
+;   17	
+;   18	// This points to __print_sputch except when printf is active.
+;   19	// This is so that the more commonly used function does not need to set it.
+;   20	void (*__print_xputch)(char) = __print_sputch;
+	END

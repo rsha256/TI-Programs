@@ -1,0 +1,50 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\REMOVE.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	int remove(const char *filename) {
+_remove:
+	LD	HL,-3
+	CALL	__frameset
+;    5	    return !ti_Delete(filename);
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_ti_Delete
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_1
+;    6	}
+	LD	BC,1
+	LD	(IX+-3),BC
+	JR	L_2
+L_1:
+	LD	BC,0
+	LD	(IX+-3),BC
+L_2:
+	LD	HL,(IX+-3)
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _remove ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_Delete                          IMPORT  -----   function
+;temp3                                 IX-3      3   variable
+;filename                              IX+6      3   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_Delete:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _remove
+	END

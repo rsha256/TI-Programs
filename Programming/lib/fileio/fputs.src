@@ -1,0 +1,101 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FPUTS.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	int fputs(const char *str, FILE *stream) {
+_fputs:
+	LD	HL,-5
+	CALL	__frameset
+;    5	    unsigned char slot = stream->slot;
+	LD	IY,(IX+9)
+	LD	A,(IY+0)
+	LD	(IX+-1),A
+;    6	    unsigned int i = 0;
+	LD	BC,0
+	LD	(IX+-4),BC
+;    7	    char c;
+;    8	    
+;    9	    while((c = str[i])) {
+	JR	L_3
+L_4:
+;   10	        if(ti_PutC(c, slot) == EOF) { 
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+-5)
+	PUSH	BC
+	CALL	_ti_PutC
+	POP	BC
+	POP	BC
+	LD	BC,16777215
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_2
+;   11	            return EOF;
+	LD	HL,16777215
+	JR	L_8
+;   12	        }
+L_2:
+;   13	        i++;
+	LD	BC,(IX+-4)
+	INC	BC
+	LD	(IX+-4),BC
+;   14	    }
+L_3:
+	LD	BC,(IX+-4)
+	LD	HL,(IX+6)
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	(IX+-5),A
+	OR	A,A
+	JR	NZ,L_4
+;   15	    if(ti_PutC('\n', slot) == EOF) {
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,10
+	PUSH	BC
+	CALL	_ti_PutC
+	POP	BC
+	POP	BC
+	LD	BC,16777215
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_7
+;   16	        return EOF;
+	LD	HL,16777215
+	JR	L_8
+;   17	    }
+L_7:
+;   18	    return 1;
+	LD	HL,1
+;   19	}
+L_8:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fputs ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_PutC                            IMPORT  -----   function
+;c                                     IX-5      1   variable
+;i                                     IX-4      3   variable
+;slot                                  IX-1      1   variable
+;stream                                IX+9      3   parameter
+;str                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 17 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_PutC:ROM
+	XREF __frameset:ROM
+	XDEF _fputs
+	END

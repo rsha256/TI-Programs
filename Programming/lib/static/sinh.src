@@ -1,0 +1,377 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\SINH.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	/*
+;   10		sinh(arg) returns the hyperbolic sine of its floating-
+;   11		point argument.
+;   12	
+;   13		The exponential function is called for arguments
+;   14		greater in magnitude than 0.5.
+;   15	
+;   16		A series is used for arguments smaller in magnitude than 0.5.
+;   17		The coefficients are #2029 from Hart & Cheney. (20.36D)
+;   18	
+;   19		cosh(arg) is computed from the exponential function for
+;   20		all arguments.
+;   21	*/
+;   22	
+;   23	#include <math.h>
+;   24	
+;   25	#define p0  -0.630767364049772e+6
+;   26	#define p1  -0.899127202203951e+5
+;   27	#define p2  -0.289421135598956e+4
+;   28	#define p3  -0.263056321339750e+2
+;   29	#define q0  -0.630767364049772e+6
+;   30	#define q1  0.152151737879002e+5
+;   31	#define q2  -0.173678953558234e+3
+;   32	
+;   33	double sinh(double arg) {
+_sinh:
+	LD	HL,-24
+	CALL	__frameset
+;   34		double temp, argsq;
+;   35		register int sign;
+;   36	
+;   37		sign = 1;
+	LD	BC,1
+	LD	(IX+-11),BC
+;   38		if(arg < 0) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_4
+;   39			arg = -arg;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   40			sign = -1;
+	LD	BC,16777215
+	LD	(IX+-11),BC
+;   41		}
+L_4:
+;   42	
+;   43		if(arg > 21.) {
+	LD	HL,11010048
+	LD	E,65
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_6
+;   44			temp = exp(arg)/2;
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_exp
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	OR	A,A
+	SBC	HL,HL
+	LD	E,64
+	CALL	__fdiv
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   45			if (sign>0)
+	LD	BC,(IX+-11)
+	OR	A,A
+	SBC	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_2
+;   46				return(temp);
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	JR	L_8
+;   47			else
+L_2:
+;   48				return(-temp);
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fneg
+	LD	E,A
+	LD	HL,BC
+	JR	L_8
+;   49		}
+L_6:
+	OR	A,A
+;   50	
+;   51		if(arg > 0.5) {
+	SBC	HL,HL
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_7
+;   52			return(sign*(exp(arg) - exp(-arg))/2);
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_exp
+	POP	BC
+	POP	BC
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+-14),HL	; spill
+	LD	(IX+-17),BC	; spill
+	LD	HL,(IX+-14)	; unspill
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	LD	(IX+-14),HL	; spill
+	LD	HL,(IX+-17)	; unspill
+	PUSH	HL
+	LD	HL,(IX+-14)	; unspill
+	LD	BC,HL
+	LD	A,E
+	LD	(IX+-23),BC
+	LD	(IX+-24),A
+	CALL	_exp
+	LD	BC,(IX+-23)
+	LD	A,(IX+-24)
+	POP	IY
+	POP	IY
+	CALL	__fsub
+	LD	(IX+-20),BC
+	LD	BC,(IX+-11)
+	LD	H,A
+	CALL	__itol
+	CALL	__ltof
+	LD	E,A
+	LD	A,H
+	LD	HL,BC
+	LD	BC,(IX+-20)
+	CALL	__fmul
+	OR	A,A
+	SBC	HL,HL
+	LD	E,64
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+	JR	L_8
+;   53		}
+L_7:
+;   54	
+;   55		argsq = arg*arg;
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fmul
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   56		temp = (((p3*argsq+p2)*argsq+p1)*argsq+p0)*arg;
+	LD	HL,13791727
+	LD	E,193
+	CALL	__fmul
+	LD	HL,3466082
+	LD	E,197
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,11508828
+	LD	E,199
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,1703670
+	LD	E,201
+	CALL	__fadd
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	CALL	__fmul
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   57		temp /= (((argsq+q2)*argsq+q1)*argsq+q0);
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	LD	HL,2993616
+	LD	E,195
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,7191730
+	LD	E,70
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,1703670
+	LD	E,201
+	CALL	__fadd
+	LD	E,A
+	LD	A,(IX+-1)
+	LD	HL,BC
+	LD	BC,(IX+-4)
+	CALL	__fdiv
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   58		return(sign*temp);
+	LD	BC,(IX+-11)
+	CALL	__itol
+	CALL	__ltof
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+;   59	}
+L_8:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _sinh ***************************
+;Name                         Addr/Register   Size   Type
+;_exp                                IMPORT  -----   function
+;sign                                 IX-11      3   variable
+;argsq                                 IX-8      4   variable
+;temp                                  IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 36 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   60	
+;   61	double cosh(double arg) {
+_cosh:
+	LD	HL,-4
+	CALL	__frameset
+;   62		double val;
+;   63	
+;   64		if(arg < 0) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_10
+;   65			arg = -arg;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   66		}
+L_10:
+;   67	
+;   68		val = exp(arg);
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_exp
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   69	
+;   70		if(arg > 21.) {
+	LD	E,65
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	HL,11010048
+	CALL	__fcmp
+	JP	P,L_12
+	OR	A,A
+;   71			return(val/2);
+	SBC	HL,HL
+	LD	E,64
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+	JR	L_13
+;   72		}
+L_12:
+;   73	
+;   74		val += exp(-arg);
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_exp
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fadd
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+	OR	A,A
+;   75		val /= 2;
+	SBC	HL,HL
+	LD	E,64
+	CALL	__fdiv
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   76		return(val);
+	LD	E,(IX+-1)
+	LD	HL,BC
+;   77	}
+L_13:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _cosh ***************************
+;Name                         Addr/Register   Size   Type
+;_exp                                IMPORT  -----   function
+;val                                   IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 16 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _exp:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __ltof:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XDEF _cosh
+	XDEF _sinh
+	END

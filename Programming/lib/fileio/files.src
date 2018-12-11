@@ -1,0 +1,13 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FILES.C"
+	.assume ADL=1
+	SEGMENT BSS
+___stdio_files:
+	DS	5
+	XDEF ___stdio_files
+;    1	#include <stdio.h>
+;    2	
+;    3	FILE __stdio_files[FOPEN_MAX];
+	END

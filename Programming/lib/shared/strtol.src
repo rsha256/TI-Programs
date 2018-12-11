@@ -1,0 +1,370 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\STRTOL.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	#include <stdio.h>
+;   10	#include <stdlib.h>
+;   11	#include <limits.h>
+;   12	#include <stddef.h>
+;   13	#include <ctype.h>
+;   14	#include <errno.h>
+;   15	
+;   16	/*************************************************
+;   17	*
+;   18	* strtol - string to long conversion
+;   19	*
+;   20	* Inputs:
+;   21	*	cp - pointer to the character string
+;   22	*	endptr - place to put ptr to first invalid character
+;   23	*	base - radix
+;   24	*
+;   25	* Returns:
+;   26	*	the value of the number
+;   27	*
+;   28	*************************************************/
+;   29	long strtol(char *cp,char **endptr,int base)
+;   30	{
+_strtol:
+	LD	HL,-30
+	CALL	__frameset
+;   31	  register long sum,psum;
+;   32	  register char sign;
+;   33	  register int radix = base;
+	LD	BC,(IX+12)
+	LD	(IX+-8),BC
+;   34	  char digit;
+;   35	
+;   36	  while (isspace(*cp))
+	JR	L_0
+L_1:
+;   37	    ++cp;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_0:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	PUSH	HL
+	CALL	_isspace
+	POP	BC
+	CALL	__icmpzero
+	JR	NZ,L_1
+;   38	
+;   39	  sign = 0;
+	LD	(IX+-9),0
+;   40	  if ( *cp == (char)'-' ) {
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,45
+	JR	NZ,L_5
+;   41	    sign = 1;
+	LD	(IX+-9),1
+;   42	    ++cp;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;   43	  }
+;   44	  else if ( *cp == (char)'+' )
+	JR	L_11
+L_5:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,43
+	JR	NZ,L_11
+;   45	    ++cp;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_11:
+;   46	
+;   47	  if (base == 0) {
+	LD	HL,(IX+12)
+	CALL	__icmpzero
+	JR	NZ,L_16
+;   48	  	radix = 10;
+	LD	BC,10
+	LD	(IX+-8),BC
+;   49	    if (*cp == (char)'0')
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,48
+	JR	NZ,L_16
+;   50	      if (cp[1] == (char)'x' || cp[1] == (char)'X')
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+-12),BC
+	LD	HL,BC
+	LD	A,(HL)
+	CP	A,120
+	JR	Z,L_7
+	LD	HL,(IX+-12)
+	LD	A,(HL)
+	CP	A,88
+	JR	NZ,L_8
+L_7:
+;   51		    radix = 16;
+	LD	BC,16
+	LD	(IX+-8),BC
+;   52	      else
+	JR	L_16
+L_8:
+;   53		    radix = 8;
+	LD	BC,8
+	LD	(IX+-8),BC
+;   54	  }
+L_16:
+;   55	
+;   56	  if (base == 16 && *cp == (char)'0' && (cp[1] == (char)'x' || cp[1] == (char)'X'))
+	LD	BC,16
+	LD	HL,(IX+12)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_17
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,48
+	JR	NZ,L_17
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+-15),BC
+	LD	HL,BC
+	LD	A,(HL)
+	CP	A,120
+	JR	Z,L_15
+	LD	HL,(IX+-15)
+	LD	A,(HL)
+	CP	A,88
+	JR	NZ,L_17
+L_15:
+;   57	    cp += 2;
+	LD	IY,(IX+6)
+	LEA	IY,IY+2
+	LD	(IX+6),IY
+L_17:
+;   58	
+;   59	  sum = 0;
+	LD	BC,0
+	LD	(IX+-5),BC
+	XOR	A,A
+	LD	(IX+-2),A
+;   60	  for (;;) {
+L_30:
+;   61	    digit = toupper(*(cp++));
+	LD	BC,(IX+6)
+	LD	(IX+-30),BC
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+	LD	HL,(IX+-30)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	PUSH	HL
+	CALL	_toupper
+	POP	BC
+	LD	(IX+-1),L
+;   62	    if (digit >= (char)'A')
+	LD	A,(IX+-1)
+	CP	A,65
+	CALL	__setflag
+	JP	M,L_20
+;   63	      digit = (digit - (char)'A') + (char)10;
+	LD	A,(IX+-1)
+	ADD	A,-55
+	LD	(IX+-1),A
+;   64	    else
+	JR	L_23
+L_20:
+;   65	      digit -= (char)'0';
+	LD	A,(IX+-1)
+	ADD	A,-48
+	LD	(IX+-1),A
+L_23:
+;   66	    if (digit < (char)0 || digit >= (char)radix)
+	LD	A,(IX+-1)
+	OR	A,A
+	JP	M,L_40
+	LD	B,(IX+-8)
+	LD	A,(IX+-1)
+	CP	A,B
+	CALL	__setflag
+	JP	P,L_40
+;   67	      break;
+;   68	    psum = sum;
+	LD	BC,(IX+-5)
+	LD	A,(IX+-2)
+	LD	(IX+-27),BC
+	LD	(IX+-24),A
+;   69		sum *= radix;
+	LD	BC,(IX+-8)
+	CALL	__itol
+	LD	HL,(IX+-5)
+	LD	E,(IX+-2)
+	CALL	__lmuls
+	LD	(IX+-5),HL
+	LD	(IX+-2),E
+;   70		sum	+= digit;
+	LD	A,(IX+-1)
+	SEXT	HL
+	LD	L,(IX+-1)
+	LD	BC,HL
+	LD	A,H
+	LD	HL,(IX+-5)
+	LD	E,(IX+-2)
+	CALL	__ladd
+	LD	(IX+-5),HL
+	LD	(IX+-2),E
+;   71	    if (sum < psum) {	/* overflow */
+	LD	HL,(IX+-5)
+	LD	E,(IX+-2)
+	LD	BC,(IX+-27)
+	LD	A,(IX+-24)
+	CALL	__lcmps
+	CALL	__setflag
+	JP	P,L_30
+;   72	      sum = sign ? LONG_MIN : LONG_MAX;
+	LD	A,(IX+-9)
+	OR	A,A
+	JR	Z,L_27
+	LD	BC,0
+	LD	(IX+-19),BC
+	LD	A,128
+	LD	(IX+-16),A
+	JR	L_28
+L_27:
+	LD	BC,16777215
+	LD	(IX+-19),BC
+	LD	A,127
+	LD	(IX+-16),A
+L_28:
+	LD	BC,(IX+-19)
+	LD	A,(IX+-16)
+	LD	(IX+-5),BC
+	LD	(IX+-2),A
+;   73		  errno=ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;   74	      break;
+;   75	    }
+;   76	  }
+L_40:
+;   77	
+;   78	  if (endptr) {
+	LD	HL,(IX+9)
+	CALL	__icmpzero
+	JR	Z,L_45
+;   79	    --cp;
+	LD	IY,(IX+6)
+	LEA	IY,IY+-1
+	LD	(IX+6),IY
+;   80	    if (base == 0) {
+	LD	HL,(IX+12)
+	CALL	__icmpzero
+	JR	Z,L_35
+	JR	L_38
+;   81	      while (*cp == (char)'h' || *cp == (char)'u' ||
+L_36:
+;   82		     *cp == (char)'l' || *cp == (char)'L')
+;   83		++cp;
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_35:
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,104
+	JR	Z,L_36
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,117
+	JR	Z,L_36
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,108
+	JR	Z,L_36
+	LD	HL,(IX+6)
+	LD	A,(HL)
+	CP	A,76
+	JR	Z,L_36
+;   84	    }
+L_38:
+;   85	    *endptr = cp;
+	LD	HL,(IX+9)
+	LD	BC,(IX+6)
+	LD	(HL),BC
+;   86	  }
+L_45:
+;   87	  return(sign ? -sum : sum);
+	LD	A,(IX+-9)
+	OR	A,A
+	JR	Z,L_43
+	LD	HL,(IX+-5)
+	LD	E,(IX+-2)
+	CALL	__lneg
+	LD	(IX+-23),HL
+	LD	(IX+-20),E
+	JR	L_44
+L_43:
+	LD	BC,(IX+-5)
+	LD	A,(IX+-2)
+	LD	(IX+-23),BC
+	LD	(IX+-20),A
+L_44:
+	LD	HL,(IX+-23)
+	LD	E,(IX+-20)
+;   88	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _strtol ***************************
+;Name                         Addr/Register   Size   Type
+;_errno                              IMPORT      3   variable
+;_toupper                            IMPORT  -----   function
+;_isspace                            IMPORT  -----   function
+;psum                                 IX-27      4   variable
+;temp41                               IX-23      4   variable
+;temp25                               IX-19      4   variable
+;G_1                                  IX-15      3   variable
+;G_0                                  IX-12      3   variable
+;sign                                  IX-9      1   variable
+;radix                                 IX-8      3   variable
+;sum                                   IX-5      4   variable
+;digit                                 IX-1      1   variable
+;base                                 IX+12      3   parameter
+;endptr                                IX+9      3   parameter
+;cp                                    IX+6      3   parameter
+
+
+; Stack Frame Size: 45 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _errno:ROM
+	XREF _toupper:ROM
+	XREF _isspace:ROM
+	XREF __lcmps:ROM
+	XREF __ladd:ROM
+	XREF __lmuls:ROM
+	XREF __lneg:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XDEF _strtol
+	END

@@ -1,0 +1,210 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UFLTRND.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	
+;    9	/*************************************************
+;   10	*
+;   11	* _u_flt_rnd - Round to specified number of digits
+;   12	*
+;   13	* Inputs:
+;   14	*	info - flt_info structure
+;   15	*	digits - number of digits of precision
+;   16	*
+;   17	* Returns:
+;   18	*	nothing
+;   19	*
+;   20	*************************************************/
+;   21	void _u_flt_rnd(struct flt_info *info, char digits)
+;   22	{
+__u_flt_rnd:
+	LD	HL,-18
+	CALL	__frameset
+;   23	  register unsigned char i;
+;   24	  register unsigned char carry,any;
+;   25	
+;   26	  if (digits <= 0)
+	XOR	A,A
+	CP	A,(IX+9)
+	CALL	__setflag
+	JP	P,L_14
+;   27	    return;
+;   28	
+;   29	  carry = any = 0;
+	LD	(IX+-3),0
+	LD	(IX+-2),0
+;   30	  for (i = MAXDIGITS-1; i >= digits; -- i) {
+	LD	(IX+-1),9
+	JR	L_4
+L_2:
+;   31	    carry = info->digits[i] >= 5;
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	IY,(IX+6)
+	LEA	HL,IY+2
+	ADD	HL,BC
+	LD	(IX+-9),HL
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,5
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L__2
+	LD	A,1
+	JR	L__3
+L__2:
+	XOR	A,A
+L__3:
+	LD	(IX+-2),A
+;   32	    any |= info->digits[i];
+	LD	HL,(IX+-9)
+	LD	A,(HL)
+	OR	A,(IX+-3)
+	LD	(IX+-3),A
+;   33	    info->digits[i] = 0;
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	IY,(IX+6)
+	LEA	HL,IY+2
+	ADD	HL,BC
+	LD	(HL),0
+	DEC	(IX+-1)
+;   34	  }
+L_4:
+	LD	A,(IX+-1)
+	CP	A,(IX+9)
+	JR	NC,L_2
+;   35	
+;   36	  if (carry)
+	LD	A,(IX+-2)
+	OR	A,A
+	JR	Z,L_9
+;   37	    ++info->digits[i];
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	IY,(IX+6)
+	LEA	HL,IY+2
+	ADD	HL,BC
+	LD	(IX+-18),HL	; spill
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LEA	HL,IY+2
+	ADD	HL,BC
+	LD	(IX+-15),HL	; spill
+	LD	HL,(IX+-18)	; unspill
+	LD	A,(HL)
+	LD	HL,(IX+-15)	; unspill
+	INC	A
+	LD	(HL),A
+;   38	  while (i > 0 && info->digits[i] == 10) {
+	JR	L_9
+L_10:
+;   39	    info->digits[i] = 0;
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,(IX+-6)
+	ADD	HL,BC
+	LD	(HL),0
+;   40	    --i;
+	DEC	(IX+-1)
+;   41	    info->digits[i]++;
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,(IX+-6)
+	ADD	HL,BC
+	LD	(IX+-12),HL
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	IY,(IX+-12)
+	LD	BC,(IX+-6)
+	ADD	HL,BC
+	LD	A,(IY)
+	INC	A
+	LD	(HL),A
+;   42	  }
+L_9:
+	XOR	A,A
+	CP	A,(IX+-1)
+	JR	NC,L_13
+	LD	IY,(IX+6)
+	LEA	BC,IY+2
+	LD	(IX+-6),BC
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LEA	HL,IY+2
+	ADD	HL,BC
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,10
+	SBC	HL,BC
+	JR	Z,L_10
+L_13:
+;   43	
+;   44	  if (info->digits[0] == 10) {
+	LD	IY,(IX+6)
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,10
+	SBC	HL,BC
+	JR	NZ,L_14
+;   45	    ++info->exp;
+	LD	IY,(IX+6)
+	LD	A,(IY+1)
+	INC	A
+	LD	(IY+1),A
+;   46	    info->digits[0] = 1;
+	LD	(IY+2),1
+;   47	  }
+;   48	}
+L_14:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_flt_rnd ***************************
+;Name                         Addr/Register   Size   Type
+;G_0                                   IX-6      3   variable
+;any                                   IX-3      1   variable
+;carry                                 IX-2      1   variable
+;i                                     IX-1      1   variable
+;digits                                IX+9      1   parameter
+;info                                  IX+6      3   parameter
+
+
+; Stack Frame Size: 30 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XDEF __u_flt_rnd
+	END

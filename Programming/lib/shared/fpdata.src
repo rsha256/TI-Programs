@@ -1,0 +1,17 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FPDATA.C"
+	.assume ADL=1
+	SEGMENT DATA
+__huge_val:
+	DF	3.40282347E+38
+	XDEF __huge_val
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	#include <float.h>
+;    6	
+;    7	double _huge_val = LDBL_MAX;
+	END

@@ -1,0 +1,114 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FLOOR.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C) 2000-2008 Zilog, Inc.		*/
+;    4	/*									*/
+;    5	/*		        San Jose, California     			*/
+;    6	/*									*/
+;    7	/************************************************************************/
+;    8	#include <math.h>
+;    9	
+;   10	double floor(double d) {
+_floor:
+	LD	HL,-4
+	CALL	__frameset
+;   11		double fraction;
+;   12	
+;   13		if (d<0.0) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_3
+;   14			d = -d;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   15	                fraction = modf(d, (double *)&d);
+	PEA	IX+6
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   16			if (fraction != 0.0)
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	Z,L_1
+;   17				d += 1;
+	LD	HL,8388608
+	LD	E,63
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fadd
+	LD	(IX+6),BC
+	LD	(IX+9),A
+L_1:
+;   18			d = -d;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   19		} else {
+	JR	L_4
+L_3:
+;   20	                fraction = modf(d, (double *)&d);
+	PEA	IX+6
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   21		}
+L_4:
+;   22		return(d);
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+;   23	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _floor ***************************
+;Name                         Addr/Register   Size   Type
+;_modf                               IMPORT  -----   function
+;fraction                              IX-4      4   variable
+;d                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 16 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _modf:ROM
+	XREF __fadd:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __frameset:ROM
+	XDEF _floor
+	END

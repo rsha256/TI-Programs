@@ -1,0 +1,180 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FREE.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/***************************************************************/
+;    2	/*                                                             */
+;    3	/*            Copyright (C) 2000-2008 Zilog, Inc.              */
+;    4	/*                                                             */
+;    5	/*                   San Jose, California                      */
+;    6	/*                                                             */
+;    7	/***************************************************************/
+;    8	#include <stdlib.h>
+;    9	
+;   10	/*************************************************
+;   11	*
+;   12	* free - free up allocated memory
+;   13	*
+;   14	* Inputs:
+;   15	*    ap - pointer to allocated memory
+;   16	*
+;   17	* Returns:
+;   18	*    nothing
+;   19	*
+;   20	*************************************************/
+;   21	extern HEADER _alloc_base;
+;   22	
+;   23	void free(void *ap) {
+_free:
+	LD	HL,-21
+	CALL	__frameset
+;   24	    HEADER *p;
+;   25	    HEADER *q;
+;   26	    
+;   27	    if (!ap) {
+	LD	HL,(IX+6)
+	CALL	__icmpzero
+	JR	Z,L_12
+;   28	        return;
+;   29	    }
+;   30	    
+;   31	    q = (HEADER*)ap - 1;
+	LD	IY,(IX+6)
+	LEA	IY,IY+-6
+	LD	(IX+-3),IY
+;   32	    
+;   33	    for (p = &_alloc_base; p->s.ptr && p->s.ptr < q; p = p->s.ptr);
+	LD	BC,__alloc_base
+	LD	(IX+-15),BC
+	JR	L_5
+L_3:
+	LD	IY,(IX+-12)
+	LD	BC,(IY+0)
+	LD	(IX+-15),BC
+L_5:
+	LD	IY,(IX+-15)
+	LEA	BC,IY+0
+	LD	(IX+-12),BC
+	LD	(IX+-18),BC
+	LD	IY,(IX+-12)
+	LD	HL,(IY+0)
+	CALL	__icmpzero
+	JR	Z,L_8
+	LD	BC,(IX+-12)
+	LD	(IX+-18),BC
+	LD	BC,(IX+-3)
+	LD	IY,(IX+-12)
+	LD	HL,(IY+0)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_3
+L_8:
+;   34	    
+;   35	    /* join upper */
+;   36	    if ((char*)p->s.ptr == ((char*)q) + q->s.size) {
+	LD	BC,(IX+-18)
+	LD	(IX+-9),BC
+	LD	IY,(IX+-3)
+	LD	BC,(IY+3)
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	IY,(IX+-9)
+	LD	BC,(IY+0)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_7
+;   37	        q->s.size += p->s.ptr->s.size;
+	LD	IY,(IX+-9)
+	LD	DE,(IY+0)
+	LD	IY,(IX+-3)
+	LD	BC,(IY+3)
+	LD	IY,DE
+	LD	HL,(IY+3)
+	ADD	HL,BC
+	LD	IY,(IX+-3)
+	LD	(IY+3),HL
+;   38	        q->s.ptr = p->s.ptr->s.ptr;
+	LD	BC,(IX+-9)
+	LD	(IX+-21),BC
+	LD	IY,(IX+-9)
+	LD	IY,(IY+0)
+	LD	BC,(IY+0)
+	LD	IY,(IX+-3)
+	LD	(IY+0),BC
+;   39	    } else {
+	JR	L_11
+L_7:
+;   40	        q->s.ptr = p->s.ptr;
+	LD	BC,(IX+-9)
+	LD	(IX+-21),BC
+	LD	IY,(IX+-9)
+	LD	BC,(IY+0)
+	LD	IY,(IX+-3)
+	LD	(IY+0),BC
+;   41	    }
+L_11:
+;   42	    
+;   43	    /* join lower */
+;   44	    if (((char*)p) + p->s.size == (char*)q) {
+	LD	BC,(IX+-21)
+	LD	(IX+-6),BC
+	LD	IY,(IX+-6)
+	LD	BC,(IY+3)
+	LD	HL,(IX+-15)
+	ADD	HL,BC
+	OR	A,A
+	LD	BC,(IX+-3)
+	SBC	HL,BC
+	JR	NZ,L_10
+;   45	        p->s.size += q->s.size;
+	LD	IY,(IX+-6)
+	LD	BC,(IY+3)
+	LD	IY,(IX+-3)
+	LD	HL,(IY+3)
+	ADD	HL,BC
+	LD	IY,(IX+-6)
+	LD	(IY+3),HL
+;   46	        p->s.ptr = q->s.ptr;
+	LD	IY,(IX+-3)
+	LD	BC,(IY+0)
+	LD	IY,(IX+-6)
+	LD	(IY+0),BC
+;   47	    } else {
+	JR	L_12
+L_10:
+;   48	        p->s.ptr = q;
+	LD	BC,(IX+-3)
+	LD	IY,(IX+-6)
+	LD	(IY+0),BC
+;   49	    }
+;   50	}
+L_12:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _free ***************************
+;Name                         Addr/Register   Size   Type
+;__alloc_base                        IMPORT      6   variable
+;G_9                                  IX-21      3   variable
+;G_2                                  IX-18      3   variable
+;p                                    IX-15      3   variable
+;G_1                                  IX-12      3   variable
+;G_5                                   IX-9      3   variable
+;G_10                                  IX-6      3   variable
+;q                                     IX-3      3   variable
+;ap                                    IX+6      3   parameter
+
+
+; Stack Frame Size: 30 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __alloc_base:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _free
+	END

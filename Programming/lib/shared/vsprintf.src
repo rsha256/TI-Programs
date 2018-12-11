@@ -1,0 +1,64 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\VSPRINTF.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	#include <format.h>
+;    6	#include <stdio.h>
+;    7	#include <stdarg.h>
+;    8	
+;    9	/*************************************************
+;   10	*
+;   11	* vsprintf - print to a string (variable args)
+;   12	*
+;   13	* Inputs:
+;   14	*	string - pointer to string to write to
+;   15	*	fmt - format string
+;   16	*	args - argument list
+;   17	*
+;   18	* Returns:
+;   19	*	Number of characters transmitted, or
+;   20	*	-1 if an error occured.
+;   21	*
+;   22	*************************************************/
+;   23	int vsprintf(char *string,char *fmt,va_list args) {
+_vsprintf:
+	CALL	__frameset0
+;   24	    return(_u_print(string, fmt, args));
+	LD	BC,(IX+12)
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	__u_print
+	POP	BC
+	POP	BC
+	POP	BC
+;   25	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _vsprintf ***************************
+;Name                         Addr/Register   Size   Type
+;__u_print                           IMPORT  -----   function
+;args                                 IX+12      3   parameter
+;fmt                                   IX+9      3   parameter
+;string                                IX+6      3   parameter
+
+
+; Stack Frame Size: 15 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __u_print:ROM
+	XREF __frameset0:ROM
+	XDEF _vsprintf
+	END

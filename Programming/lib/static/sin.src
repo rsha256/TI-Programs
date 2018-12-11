@@ -1,0 +1,340 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\SIN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*                Copyright (C) 1999-2008 by Zilog, Inc.                */
+;    4	/*									*/
+;    5	/************************************************************************/
+;    6	/*
+;    7		C program for floating point sin/cos.
+;    8		Calls modf.
+;    9		There are no error exits.
+;   10		Coefficients are #3370 from Hart & Cheney (18.80D).
+;   11	*/
+;   12	#include <math.h>
+;   13	
+;   14	
+;   15	#define twoopi	  0.636619772367581
+;   16	#define p0	  0.135788409787738e8
+;   17	#define p1	 -0.494290810090284e7
+;   18	#define p2	  0.440103053537527e6
+;   19	#define p3	 -0.138472724998245e5
+;   20	#define p4	  0.145968840666577e3
+;   21	#define q0	  0.864455865292253e7
+;   22	#define q1	  0.408179225234330e6
+;   23	#define q2	  0.946309610153821e4
+;   24	#define q3	  0.132653490878614e3
+;   25	
+;   26	double sinus(double,int);
+;   27	
+;   28	double sin(double arg) {
+_sin:
+	CALL	__frameset0
+;   29		return(sinus(arg, 0));
+	LD	BC,0
+	PUSH	BC
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_sinus
+	POP	BC
+	POP	BC
+	POP	BC
+;   30	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _sin ***************************
+;Name                         Addr/Register   Size   Type
+;_sinus                              IMPORT  -----   function
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   31	
+;   32	double sinus(double arg, int quad)
+;   33	{
+_sinus:
+	LD	HL,-28
+	CALL	__frameset
+;   34		double e, f;
+;   35		int k;
+;   36		double ysq;
+;   37		double x,y;
+;   38		double temp1, temp2;
+;   39	
+;   40		x = arg;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   41		if(x<0) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_2
+;   42			x = -x;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   43			quad = quad + 2;
+	LD	IY,(IX+12)
+	LEA	IY,IY+2
+	LD	(IX+12),IY
+;   44		}
+L_2:
+;   45		x = x*twoopi;	/*underflow?*/
+	LD	HL,2292099
+	LD	E,63
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fmul
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   46		if(x>32764){
+	LD	HL,16775168
+	LD	E,70
+	CALL	__fcmp
+	JP	P,L_4
+;   47			y = modf(x,&e);
+	PEA	IX+-16
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-12),HL
+	LD	(IX+-9),E
+;   48			e = e + quad;
+	LD	BC,(IX+12)
+	CALL	__itol
+	CALL	__ltof
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-16)
+	LD	A,(IX+-13)
+	CALL	__fadd
+	LD	(IX+-16),BC
+	LD	(IX+-13),A
+;   49			modf(0.25*e,&f);
+	PEA	IX+-20
+	LD	A,(IX+-13)
+	LD	HL,8388608
+	LD	E,62
+	CALL	__fmul
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_modf
+	POP	BC
+	POP	BC
+	POP	BC
+;   50			quad = e - 4*f;
+	LD	BC,(IX+-20)
+	LD	A,(IX+-17)
+	LD	HL,8388608
+	LD	E,64
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-16)
+	LD	A,(IX+-13)
+	CALL	__fsub
+	CALL	__ftol
+	LD	(IX+12),BC
+;   51		}else{
+	JR	L_6
+L_4:
+;   52			k = x;
+;   53			y = x - k;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__ftol
+	CALL	__itol
+	CALL	__ltof
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fsub
+	LD	(IX+-12),BC
+	LD	(IX+-9),A
+;   54			quad = (quad + k) & 03;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__ftol
+	LD	HL,BC
+	LD	BC,(IX+12)
+	ADD	HL,BC
+	LD	A,L
+	AND	A,3
+	UEXT	HL
+	LD	L,A
+	LD	(IX+12),HL
+;   55		}
+L_6:
+;   56		if (quad & 01)
+	LD	A,(IX+12)
+	AND	A,1
+	UEXT	HL
+	LD	L,A
+	CALL	__icmpzero
+	JR	Z,L_8
+;   57			y = 1-y;
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	LD	BC,8388608
+	LD	A,63
+	CALL	__fsub
+	LD	(IX+-12),BC
+	LD	(IX+-9),A
+L_8:
+;   58		if(quad > 1)
+	LD	BC,(IX+12)
+	LD	HL,1
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_9
+;   59			y = -y;
+	LD	BC,(IX+-12)
+	LD	A,(IX+-9)
+	CALL	__fneg
+	LD	(IX+-12),BC
+	LD	(IX+-9),A
+L_9:
+;   60	
+;   61		ysq = y*y;
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	LD	BC,(IX+-12)
+	LD	A,(IX+-9)
+	CALL	__fmul
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+;   62		temp1 = ((((p4*ysq+p3)*ysq+p2)*ysq+p1)*ysq+p0)*y;
+	LD	HL,1177606
+	LD	E,67
+	CALL	__fmul
+	LD	HL,5790999
+	LD	E,198
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,14083298
+	LD	E,72
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,9885816
+	LD	E,202
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,5190233
+	LD	E,75
+	CALL	__fadd
+	LD	HL,(IX+-12)
+	LD	E,(IX+-9)
+	CALL	__fmul
+	LD	(IX+-24),BC
+	LD	(IX+-21),A
+;   63		temp2 = ((((ysq+q3)*ysq+q2)*ysq+q1)*ysq+q0);
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	LD	HL,304971
+	LD	E,67
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,1301602
+	LD	E,70
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,13061735
+	LD	E,72
+	CALL	__fadd
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	CALL	__fmul
+	LD	HL,255951
+	LD	E,75
+	CALL	__fadd
+	LD	(IX+-28),BC
+	LD	(IX+-25),A
+;   64		return(temp1/temp2);
+	LD	HL,BC
+	LD	BC,(IX+-24)
+	LD	E,(IX+-25)
+	LD	A,(IX+-21)
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+;   65	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _sinus ***************************
+;Name                         Addr/Register   Size   Type
+;_modf                               IMPORT  -----   function
+;temp2                                IX-28      4   variable
+;temp1                                IX-24      4   variable
+;f                                    IX-20      4   variable
+;e                                    IX-16      4   variable
+;y                                    IX-12      4   variable
+;ysq                                   IX-8      4   variable
+;x                                     IX-4      4   variable
+;quad                                 IX+12      3   parameter
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 43 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _modf:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __ftol:ROM
+	XREF __ltof:ROM
+	XREF __itol:ROM
+	XREF __frameset0:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XDEF _sinus
+	XDEF _sin
+	END

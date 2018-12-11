@@ -1,0 +1,129 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\TANH.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	/*
+;   10		tanh(arg) computes the hyperbolic tangent of its floating
+;   11		point argument.
+;   12	
+;   13		sinh and cosh are called except for large arguments, which
+;   14		would cause overflow improperly.
+;   15	*/
+;   16	
+;   17	#include <math.h>
+;   18	
+;   19	double tanh(double arg)
+;   20	{
+_tanh:
+	LD	HL,-10
+	CALL	__frameset
+;   21		double sign;
+;   22	
+;   23		sign = 1.;
+	LD	BC,8388608
+	LD	(IX+-4),BC
+	LD	A,63
+	LD	(IX+-1),A
+;   24		if(arg < 0.){
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_2
+;   25			arg = -arg;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	(IX+6),BC
+	LD	(IX+9),A
+;   26			sign = -1.;
+	LD	BC,8388608
+	LD	(IX+-4),BC
+	LD	A,191
+	LD	(IX+-1),A
+;   27		}
+L_2:
+;   28	
+;   29		if(arg > 21.)
+	LD	HL,11010048
+	LD	E,65
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_3
+;   30			return(sign);
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	JR	L_4
+L_3:
+;   31	
+;   32		return(sign*sinh(arg)/cosh(arg));
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_sinh
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__fmul
+	LD	(IX+-7),BC
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	B,A
+	LD	(IX+-10),BC
+	CALL	_cosh
+	LD	BC,(IX+-10)
+	POP	IY
+	POP	IY
+	LD	A,B
+	LD	BC,(IX+-7)
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+;   33	}
+L_4:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _tanh ***************************
+;Name                         Addr/Register   Size   Type
+;_cosh                               IMPORT  -----   function
+;_sinh                               IMPORT  -----   function
+;sign                                  IX-4      4   variable
+;arg                                   IX+6      4   parameter
+
+
+; Stack Frame Size: 22 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _sinh:ROM
+	XREF _cosh:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __frameset:ROM
+	XDEF _tanh
+	END

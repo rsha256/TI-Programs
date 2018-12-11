@@ -1,0 +1,88 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FEOF.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	int feof(FILE *stream) {
+_feof:
+	LD	HL,-7
+	CALL	__frameset
+;    5	    char a;
+;    6	    int sz;
+;    7	
+;    8	    sz = fread(&a, 1, 1, stream);
+	LD	BC,(IX+6)
+	PUSH	BC
+	LD	BC,1
+	PUSH	BC
+	PUSH	BC
+	PEA	IX+-1
+	CALL	_fread
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;    9	    fseek(stream, -sz, SEEK_CUR);
+	LD	BC,HL
+	CALL	__itol
+	LD	(IX+-7),HL
+	LD	HL,BC
+	LD	E,A
+	CALL	__lneg
+	LD	C,E
+	LD	DE,1
+	PUSH	DE
+	LD	B,0
+	PUSH	BC
+	PUSH	HL
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_fseek
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   10	    return !sz;
+	LD	HL,(IX+-7)
+	CALL	__icmpzero
+	JR	NZ,L_1
+;   11	}
+	LD	BC,1
+	LD	(IX+-4),BC
+	JR	L_2
+L_1:
+	LD	BC,0
+	LD	(IX+-4),BC
+L_2:
+	LD	HL,(IX+-4)
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _feof ***************************
+;Name                         Addr/Register   Size   Type
+;_fseek                              IMPORT  -----   function
+;_fread                              IMPORT  -----   function
+;sz                                    IX-7      3   variable
+;temp3                                 IX-4      3   variable
+;a                                     IX-1      1   variable
+;stream                                IX+6      3   parameter
+
+
+; Stack Frame Size: 16 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _fseek:ROM
+	XREF _fread:ROM
+	XREF __lneg:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _feof
+	END

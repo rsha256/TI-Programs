@@ -1,0 +1,39 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FGETC.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	int fgetc(FILE *stream) {
+_fgetc:
+	CALL	__frameset0
+;    5	    return ti_GetC(stream->slot);
+	LD	IY,(IX+6)
+	LD	C,(IY+0)
+	LD	B,0
+	PUSH	BC
+	CALL	_ti_GetC
+	POP	BC
+;    6	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fgetc ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_GetC                            IMPORT  -----   function
+;stream                                IX+6      3   parameter
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_GetC:ROM
+	XREF __frameset0:ROM
+	XDEF _fgetc
+	END

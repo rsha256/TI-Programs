@@ -1,0 +1,112 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UREVERSE.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	#include <string.h>
+;   10	#include <format.h>
+;   11	
+;   12	/*************************************************
+;   13	*
+;   14	* _u_reverse - reverse a string leaving the end
+;   15	*	       of string indicator at the end
+;   16	*	       of the string
+;   17	*
+;   18	* Inputs:
+;   19	*	str - string to be reversed
+;   20	*
+;   21	* Returns:
+;   22	*	str - string reversed
+;   23	*
+;   24	*************************************************/
+;   25	void _u_reverse(char *s)
+;   26	{
+__u_reverse:
+	LD	HL,-16
+	CALL	__frameset
+;   27	  register char *ss = s;
+	LD	BC,(IX+6)
+	LD	(IX+-3),BC
+;   28	  register size_t len = strlen(s);
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_strlen
+	POP	BC
+	LD	(IX+-6),HL
+;   29	  register char *pp = s + len - 1;
+	LD	BC,(IX+6)
+	ADD	HL,BC
+	DEC	HL
+	LD	(IX+-9),HL
+;   30	  register char c;
+;   31	
+;   32	  while (len > 1) {
+	JR	L_2
+L_3:
+;   33	    c = *pp;
+	LD	HL,(IX+-9)
+	LD	A,(HL)
+	LD	(IX+-10),A
+;   34	    *pp-- = *ss;
+	LD	BC,(IX+-9)
+	LD	(IX+-13),BC
+	LD	HL,(IX+-3)
+	LD	A,(HL)
+	LD	HL,(IX+-13)
+	LD	(HL),A
+	LD	IY,(IX+-9)
+	LEA	BC,IY+-1
+	LD	(IX+-9),BC
+;   35	    *ss++ = c;
+	LD	BC,(IX+-3)
+	LD	(IX+-16),BC
+	LD	HL,BC
+	LD	A,(IX+-10)
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   36	    len -= 2;
+	LD	IY,(IX+-6)
+	LEA	IY,IY+-2
+	LD	(IX+-6),IY
+;   37	  }
+L_2:
+	LD	BC,(IX+-6)
+	LD	HL,1
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_3
+;   38	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_reverse ***************************
+;Name                         Addr/Register   Size   Type
+;_strlen                             IMPORT  -----   function
+;c                                    IX-10      1   variable
+;pp                                    IX-9      3   variable
+;len                                   IX-6      3   variable
+;ss                                    IX-3      3   variable
+;s                                     IX+6      3   parameter
+
+
+; Stack Frame Size: 25 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _strlen:ROM
+	XREF __frameset:ROM
+	XDEF __u_reverse
+	END

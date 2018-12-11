@@ -1,0 +1,173 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UDTOG.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	
+;    9	/*************************************************
+;   10	*
+;   11	* _u_dtog - convert a double float to ASCII in g format
+;   12	*
+;   13	* Inputs:
+;   14	*	n - value to be converted
+;   15	*	s - target char array
+;   16	*	fmt - format structure with conversion info
+;   17	*
+;   18	* Returns:
+;   19	*	next address past the end of the string
+;   20	*
+;   21	*************************************************/
+;   22	#ifndef _MULTI_THREAD
+;   23	void _u_dtog(double n)
+;   24	#else
+;   25	char _mt_dtog(double n,char* __print_buff,struct fmt_type* fmt)
+;   26	#define __print_fmt (*fmt)
+;   27	#define _u_dtof(n) _mt_dtof(n,__print_buff,fmt)
+;   28	#endif
+;   29	{
+__u_dtog:
+	LD	HL,-12
+	CALL	__frameset
+;   30	  struct flt_info _info;
+;   31	
+;   32	  _u_flt_info(n, &_info);
+	PEA	IX+-12
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	__u_flt_info
+	POP	BC
+	POP	BC
+	POP	BC
+;   33	
+;   34	  if (__print_fmt.precision < 0)
+	LD	A,(___print_fmt+6)
+	OR	A,A
+	JP	P,L_2
+;   35	    __print_fmt.precision = 0;
+	XOR	A,A
+	LD	(___print_fmt+6),A
+L_2:
+;   36	
+;   37	  if (__print_fmt.field_width < 0)
+	LD	A,(___print_fmt+5)
+	OR	A,A
+	JP	P,L_4
+;   38	  {
+;   39	    __print_fmt.flags |= FMT_FLAG_MINUS;
+	LD	A,(___print_fmt+1)
+	SET	0,A
+	LD	(___print_fmt+1),A
+;   40	    __print_fmt.field_width = -__print_fmt.field_width;
+	LD	A,(___print_fmt+5)
+	NEG	
+	LD	(___print_fmt+5),A
+;   41	  }
+L_4:
+;   42	
+;   43	  if (!(__print_fmt.flags & FMT_FLAG_POUND))
+	LD	A,(___print_fmt+1)
+	AND	A,8
+	JR	NZ,L_6
+;   44	    __print_fmt.flags |= FMT_FLAG_STRIP;
+	LD	A,(___print_fmt+1)
+	SET	7,A
+	LD	(___print_fmt+1),A
+L_6:
+;   45	
+;   46	  // ISO Spec: The precision is the maximal number of significant digits
+;   47	  //           if the precision is zero it is taken as one.
+;   48	  if (!__print_fmt.precision)
+	LD	A,(___print_fmt+6)
+	OR	A,A
+	JR	NZ,L_10
+;   49	    __print_fmt.precision=1;
+	LD	A,1
+	LD	(___print_fmt+6),A
+L_10:
+;   50	
+;   51	  if (   _info.exp < MINEXP
+;   52	      || _info.exp >= __print_fmt.precision)
+	LD	A,(IX+-11)
+	CP	A,-4
+	JP	M,L_8
+	LD	A,(IX+-11)
+	LD	HL,___print_fmt+6
+	CP	A,(HL)
+	CALL	__setflag
+	JP	M,L_9
+L_8:
+;   53	  {
+;   54	    --__print_fmt.precision;
+	LD	A,(___print_fmt+6)
+	DEC	A
+	LD	(___print_fmt+6),A
+;   55	    __print_fmt.type = 'e';
+	LD	A,101
+	LD	(___print_fmt+4),A
+;   56	  }
+;   57	  else
+	JR	L_11
+L_9:
+;   58	  {
+;   59	    __print_fmt.precision -= (1 + _info.exp);
+	LD	B,(IX+-11)
+	INC	B
+	LD	A,(___print_fmt+6)
+	SUB	A,B
+	LD	(___print_fmt+6),A
+;   60	    __print_fmt.type = 'f';
+	LD	A,102
+	LD	(___print_fmt+4),A
+;   61	  }
+L_11:
+;   62	
+;   63	#ifndef _MULTI_THREAD
+;   64	  _u_dtof(n);
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	__u_dtof
+	POP	BC
+	POP	BC
+;   65	#else
+;   66	  return(_u_dtof(n));
+;   67	#endif
+;   68	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_dtog ***************************
+;Name                         Addr/Register   Size   Type
+;__u_dtof                            IMPORT  -----   function
+;___print_fmt                        IMPORT     19   variable
+;__u_flt_info                        IMPORT  -----   function
+;_info                                IX-12     12   variable
+;n                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 24 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __u_flt_info:ROM
+	XREF __u_dtof:ROM
+	XREF ___print_fmt:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XDEF __u_dtog
+	END

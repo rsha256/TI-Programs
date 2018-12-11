@@ -1,0 +1,225 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\MALLOC.C"
+	.assume ADL=1
+	SEGMENT BSS
+__alloc_base:
+	DS	6
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2011 by				*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*                                                                      */
+;    8	/*   This implements a straight forward version of malloc, allocating   */
+;    9	/*   memory between the first unused address in RAM (__heapbot) and     */
+;   10	/*   the current stack pointer; the stack pointer being initialized to  */
+;   11	/*   the top of RAM (__heaptop).                                        */
+;   12	/*   The Zilog real time kernel, RZK, implements an entirely  */
+;   13	/*   different version of malloc.                                       */
+;   14	/*                                                                      */
+;   15	/*   ZDS arranges that this malloc does not get linked into  RZK        */
+;   16	/*   applications by placing the C runtime library, crt.lib or          */
+;   17	/*   crtD.lib, after the RZK libraries in the linker command file.      */
+;   18	/*									*/
+;   19	/************************************************************************/
+;   20	#include <stddef.h>
+;   21	#include <stdlib.h>
+;   22	
+;   23	HEADER _alloc_base;                /* empty list to get started    */
+	SEGMENT CODE
+;   24	extern void *_s_sbrk(size_t);
+;   25	
+;   26	/*************************************************
+;   27	*
+;   28	* morecore - get more memory for heap
+;   29	*
+;   30	* Inputs:
+;   31	*	nu - number of units
+;   32	*
+;   33	* Returns:
+;   34	*	the address of the new memory
+;   35	*
+;   36	*************************************************/
+;   37	
+;   38	static void* morecore(size_t nbytes)
+;   39	{
+_morecore:
+	LD	HL,-3
+	CALL	__frameset
+;   40	    register void *cp;
+;   41	    if(cp = _s_sbrk(nbytes))
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	__s_sbrk
+	POP	BC
+	LD	(IX+-3),HL
+	CALL	__icmpzero
+	JR	Z,L_1
+;   42	    {
+;   43	        ((HEADER*)cp)->s.size=nbytes;
+	LD	BC,(IX+6)
+	LD	IY,(IX+-3)
+	LD	(IY+3),BC
+;   44	        cp = ((HEADER*)cp) + 1;
+	LEA	IY,IY+6
+	LD	(IX+-3),IY
+;   45	    }
+L_1:
+;   46	    return(cp);
+	LD	HL,(IX+-3)
+;   47	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _morecore ***************************
+;Name                         Addr/Register   Size   Type
+;__s_sbrk                            IMPORT  -----   function
+;cp                                    IX-3      3   variable
+;nbytes                                IX+6      3   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   48	
+;   49	/*************************************************
+;   50	*
+;   51	* malloc - allocate heap storage
+;   52	*
+;   53	* Inputs:
+;   54	*	nbytes - number of bytes to allocate
+;   55	*
+;   56	* Returns:
+;   57	*	the address of the memory or NULL
+;   58	*
+;   59	*************************************************/
+;   60	
+;   61	void *malloc(size_t nbytes)
+;   62	{
+_malloc:
+	LD	HL,-9
+	CALL	__frameset
+;   63	    HEADER *p,*q;
+;   64	    size_t size = nbytes + sizeof(HEADER);
+	LD	IY,(IX+6)
+	LEA	IY,IY+6
+	LD	(IX+-6),IY
+;   65	
+;   66	    if (size < nbytes)
+	LD	BC,(IX+6)
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_11
+	OR	A,A
+;   67	        return NULL;  // Happens on malloc(-1) or like stupidity
+	SBC	HL,HL
+	JR	L_13
+L_11:
+;   68	
+;   69	    for(p=&_alloc_base; q=p->s.ptr; p=q)
+	LD	BC,__alloc_base
+	LD	(IX+-9),BC
+	JR	L_10
+L_8:
+;   70	    {
+;   71	        if (q->s.size >= size)
+	LD	BC,(IX+-6)
+	LD	IY,(IX+-3)
+	LD	HL,(IY+3)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_9
+;   72	        {
+;   73	            /* big enough */
+;   74	            if (q->s.size <= size+sizeof(HEADER)) 
+	LD	IY,(IX+-6)
+	LEA	HL,IY+6
+	LD	IY,(IX+-3)
+	LD	BC,(IY+3)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_5
+;   75	            {
+;   76	                /* exactly enough */
+;   77	                p->s.ptr = q->s.ptr;
+	LD	IY,(IX+-3)
+	LD	BC,(IY+0)
+	LD	IY,(IX+-9)
+	LD	(IY+0),BC
+;   78	            }
+;   79	            else
+	JR	L_6
+L_5:
+;   80	            {
+;   81	                q->s.size -= size;
+	LD	IY,(IX+-3)
+	LD	HL,(IY+3)
+	LD	BC,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	LD	(IY+3),HL
+;   82	                q = (HEADER*)(((char*)q) + q->s.size);
+	LD	BC,(IY+3)
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-3),HL
+;   83	                q->s.size = size;
+	LD	BC,(IX+-6)
+	LD	IY,(IX+-3)
+	LD	(IY+3),BC
+;   84	            }
+L_6:
+;   85	            return((void*)(q+1));
+	LD	IY,(IX+-3)
+	LEA	HL,IY+6
+	JR	L_13
+;   86	        }
+;   87	    }
+L_9:
+	LD	BC,(IX+-3)
+	LD	(IX+-9),BC
+L_10:
+	LD	IY,(IX+-9)
+	LD	BC,(IY+0)
+	LD	(IX+-3),BC
+	LD	HL,BC
+	CALL	__icmpzero
+	JR	NZ,L_8
+;   88	    return(morecore(size));
+	LD	BC,(IX+-6)
+	PUSH	BC
+	CALL	_morecore
+	POP	BC
+;   89	}
+L_13:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _malloc ***************************
+;Name                         Addr/Register   Size   Type
+;__alloc_base                        STATIC      6   variable
+;p                                     IX-9      3   variable
+;size                                  IX-6      3   variable
+;q                                     IX-3      3   variable
+;nbytes                                IX+6      3   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __s_sbrk:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _malloc
+	XDEF __alloc_base
+	END

@@ -1,0 +1,83 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\SQRT.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*                                                                      */
+;    3	/*                      Copyright (C)1987-2008 by                       */
+;    4	/*                              Zilog, Inc.                             */
+;    5	/*                                                                      */
+;    6	/*                          San Jose, California                        */
+;    7	/*                                                                      */
+;    8	/************************************************************************/
+;    9	
+;   10	#include <errno.h>
+;   11	#include <math.h>
+;   12	
+;   13	extern double sqrtf( double value );
+;   14	
+;   15	// sqrt - Standard C library routine
+;   16	// sqrt returns the square root of its floating point argument.
+;   17	//
+;   18	// Arguments:
+;   19	//   value     - the floating point argument
+;   20	//
+;   21	// Returns:
+;   22	//   - the square root (or zero if the argument is negative)
+;   23	//
+;   24	
+;   25	double sqrt( double value ) {
+_sqrt:
+	CALL	__frameset0
+;   26		if ( value < 0.0 ) {
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_1
+;   27			errno = EDOM;
+	LD	BC,4
+	LD	(_errno),BC
+	OR	A,A
+;   28			return 0.0;
+	SBC	HL,HL
+	LD	E,0
+	JR	L_2
+;   29		}
+L_1:
+;   30		return sqrtf( value );
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_sqrtf
+	POP	BC
+	POP	BC
+;   31	}
+L_2:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _sqrt ***************************
+;Name                         Addr/Register   Size   Type
+;_sqrtf                              IMPORT  -----   function
+;_errno                              IMPORT      3   variable
+;value                                 IX+6      4   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _sqrtf:ROM
+	XREF _errno:ROM
+	XREF __fcmp:ROM
+	XREF __frameset0:ROM
+	XDEF _sqrt
+	END

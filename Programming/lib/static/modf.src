@@ -1,0 +1,166 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\MODF.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*                                                                      */
+;    3	/*                      Copyright (C)1987-2008 by                       */
+;    4	/*                              Zilog, Inc.                             */
+;    5	/*                                                                      */
+;    6	/*                          San Jose, California                        */
+;    7	/*                                                                      */
+;    8	/************************************************************************/
+;    9	
+;   10	#include <math.h>
+;   11	
+;   12	typedef union {
+;   13	    float             value;
+;   14	    unsigned long     bits;
+;   15	} Ieee754;
+;   16	
+;   17	enum
+;   18	{   //  The IEEE 754 format is:
+;   19	    //  SEEEEEEE EMMMMMMM MMMMMMMM MMMMMMMM
+;   20	    //  (with an implicit mantissa high-order 1-bit.)
+;   21	    mastissa_shift = 0,
+;   22	    mastissa_bits  = 23,
+;   23	    exponent_bits  = 8,
+;   24	    exponent_shift = mastissa_shift + mastissa_bits,
+;   25	    sign_shift     = exponent_shift + exponent_bits,
+;   26	    exponent_mask  = (1 << exponent_bits) -1,  // shifted = 0x7F800000
+;   27	    exponent_max   = (1 << exponent_bits) -1,
+;   28	    exponent_base  = 127,
+;   29	    exponent_min   = 0
+;   30	};
+;   31	
+;   32	/* modf - Standard C library routine
+;   33	 * modf returns the integral and fractional components of its
+;   34	 * floating point argument.
+;   35	 *
+;   36	 * Arguments:
+;   37	 *   value     - the floating point argument
+;   38	 *   pIntegral - pointer to the returned integral component
+;   39	 *
+;   40	 * Returns:
+;   41	 *   - the fractional component
+;   42	 */
+;   43	double modf( double value, double *pIntegral ) {
+_modf:
+	LD	HL,-7
+	CALL	__frameset
+;   44		Ieee754 integral;
+;   45		int     exponent;
+;   46	
+;   47		integral.value = value;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   48		frexp( value, &exponent);
+	PEA	IX+-7
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_frexp
+	POP	BC
+	POP	BC
+	POP	BC
+;   49		if ( exponent <= 0 ) {							// set integral portion to zero
+	LD	BC,(IX+-7)
+	OR	A,A
+	SBC	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_2
+;   50			integral.bits = 0;
+	LD	BC,0
+	LD	(IX+-4),BC
+	XOR	A,A
+	LD	(IX+-1),A
+;   51		} else if ( exponent <= mastissa_bits ) {				// mask out fractional portion
+	JR	L_4
+L_2:
+	LD	BC,(IX+-7)
+	LD	HL,23
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_4
+;   52			integral.bits &= -1L << (mastissa_bits - exponent + 1);
+	LD	HL,23
+	LD	BC,(IX+-7)
+	OR	A,A
+	SBC	HL,BC
+	INC	HL
+	LD	BC,HL
+	CALL	__itol
+	LD	HL,BC
+	LD	BC,16777215
+	LD	A,255
+	CALL	__lshl
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__land
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   53		}
+L_4:
+;   54		if ( pIntegral != 0 ) {
+	LD	HL,(IX+12)
+	CALL	__icmpzero
+	JR	Z,L_5
+;   55			*pIntegral = integral.value;
+	LD	HL,(IX+12)
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	LD	(HL),BC
+	INC	HL
+	INC	HL
+	INC	HL
+	LD	(HL),A
+;   56		}
+L_5:
+;   57		return value - integral.value;
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fsub
+	LD	E,A
+	LD	HL,BC
+;   58	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _modf ***************************
+;Name                         Addr/Register   Size   Type
+;_frexp                              IMPORT  -----   function
+;exponent                              IX-7      3   variable
+;integral                              IX-4      4   variable
+;pIntegral                            IX+12      3   parameter
+;value                                 IX+6      4   parameter
+
+
+; Stack Frame Size: 22 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _frexp:ROM
+	XREF __land:ROM
+	XREF __lshl:ROM
+	XREF __fsub:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XDEF _modf
+	END

@@ -1,0 +1,141 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FREXP.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*                                                                      */
+;    3	/*			Copyright (C) 2000-2008 Zilog, Inc.		*/
+;    4	/*                                                                      */
+;    5	/*                          San Jose, California                        */
+;    6	/*                                                                      */
+;    7	/************************************************************************/
+;    8	
+;    9	#include <math.h>
+;   10	
+;   11	typedef union
+;   12	{
+;   13	    float             value;
+;   14	    unsigned long     bits;
+;   15	} Ieee754;
+;   16	
+;   17	enum
+;   18	{   //  The IEEE 754 format is:
+;   19	    //  SEEEEEEE EMMMMMMM MMMMMMMM MMMMMMMM
+;   20	    //  (with an implicit mantissa high-order 1-bit.)
+;   21	    mastissa_shift = 0,
+;   22	    mastissa_bits  = 23,
+;   23	    exponent_bits  = 8,
+;   24	    exponent_shift = mastissa_shift + mastissa_bits,
+;   25	    sign_shift     = exponent_shift + exponent_bits,
+;   26	    exponent_mask  = (1 << exponent_bits) -1,  // shifted = 0x7F800000
+;   27	    exponent_max   = (1 << exponent_bits) -1,
+;   28	    exponent_base  = 127,
+;   29	    exponent_min   = 0
+;   30	};
+;   31	
+;   32	// frexp - Standard C library routine
+;   33	// frexp returns the exponent and mantissa of its floating point
+;   34	// argument.
+;   35	//
+;   36	// Arguments:
+;   37	//   value     - the floating point argument
+;   38	//   pExponent - pointer to the returned exponent
+;   39	//
+;   40	// Returns:
+;   41	//   - a floating point number between 0.5 and 1.0 (or zero if
+;   42	//     the input argument is zero)
+;   43	//
+;   44	double frexp( double value, int *pExponent )
+;   45	{
+_frexp:
+	LD	HL,-8
+	CALL	__frameset
+;   46	    Ieee754 floating;
+;   47	    long    exponentBits = 0;
+	LD	BC,0
+	LD	(IX+-8),BC
+	XOR	A,A
+	LD	(IX+-5),A
+;   48	
+;   49	    floating.value = value;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   50	    if ( value != 0.0 )
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	Z,L_2
+;   51	    {
+;   52	        exponentBits   = (floating.bits
+;   53	                          & ((unsigned long) exponent_mask << exponent_shift))
+;   54	                       - ((exponent_base - 1L) << exponent_shift);
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,8388608
+	LD	A,127
+	CALL	__land
+	LD	BC,0
+	LD	A,193
+	CALL	__ladd
+	LD	(IX+-8),HL
+	LD	(IX+-5),E
+;   55	        floating.bits -= exponentBits;  // adjust exponent
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	CALL	__lsub
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   56	    }
+L_2:
+;   57	    if ( pExponent != 0 )
+	LD	HL,(IX+12)
+	CALL	__icmpzero
+	JR	Z,L_3
+;   58	    {
+;   59	        *pExponent = exponentBits >> exponent_shift;
+	LD	BC,(IX+-8)
+	LD	A,(IX+-5)
+	LD	L,23
+	CALL	__lshrs
+	LD	HL,(IX+12)
+	LD	(HL),BC
+;   60	    }
+L_3:
+;   61	    return floating.value;
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+;   62	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _frexp ***************************
+;Name                         Addr/Register   Size   Type
+;exponentBits                          IX-8      4   variable
+;floating                              IX-4      4   variable
+;pExponent                            IX+12      3   parameter
+;value                                 IX+6      4   parameter
+
+
+; Stack Frame Size: 23 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __ladd:ROM
+	XREF __lsub:ROM
+	XREF __land:ROM
+	XREF __lshrs:ROM
+	XREF __fcmp:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XDEF _frexp
+	END

@@ -1,0 +1,51 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FREAD.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	size_t fread(void *ptr, size_t size, size_t count, FILE *stream) {
+_fread:
+	CALL	__frameset0
+;    5	    return ti_Read(ptr, size, count, stream->slot);
+	LD	IY,(IX+15)
+	LD	C,(IY+0)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+12)
+	PUSH	BC
+	LD	BC,(IX+9)
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_ti_Read
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;    6	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fread ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_Read                            IMPORT  -----   function
+;stream                               IX+15      3   parameter
+;count                                IX+12      3   parameter
+;size                                  IX+9      3   parameter
+;ptr                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_Read:ROM
+	XREF __frameset0:ROM
+	XDEF _fread
+	END

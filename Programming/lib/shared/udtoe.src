@@ -1,0 +1,411 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UDTOE.C"
+	.assume ADL=1
+	SEGMENT BSS
+__info:
+	DS	12
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	#include <ctype.h>
+;    9	//#include <sio.h>
+;   10	#include <float.h>
+;   11	
+;   12	
+;   13	struct flt_info _info;
+	SEGMENT CODE
+;   14	typedef long reg_t;
+;   15	typedef unsigned long ureg_t;
+;   16	
+;   17	/*************************************************
+;   18	*
+;   19	* _u_dtoe - convert a double float to ASCII in e format
+;   20	*
+;   21	* Inputs:
+;   22	*	n - value to be converted
+;   23	*	s - target char array
+;   24	*	__print_fmt - format structure with conversion info
+;   25	*
+;   26	* Locals:
+;   27	*	ndig - The number of significant digits in the output.  This is
+;   28	*		assumed to be less than 128!
+;   29	*
+;   30	* Returns:
+;   31	*	next address past the end of the string
+;   32	*
+;   33	*************************************************/
+;   34	char * _u_dtoe(double n)
+;   35	{
+__u_dtoe:
+	LD	HL,-36
+	CALL	__frameset
+;   36	  register ureg_t i;
+;   37	  register ureg_t ndig;
+;   38	  register reg_t exp;
+;   39	  char *  s = __print_buff;
+	LD	BC,___print_buff
+	LD	(IX+-3),BC
+;   40	
+;   41	  /* One digit to the left of the decimal point, and precision after. */
+;   42	  ndig = __print_fmt.precision + 1;
+	LD	A,(___print_fmt+6)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	E,H
+	LD	A,1
+	CALL	__ladd_b
+	LD	(IX+-15),HL
+	LD	(IX+-12),E
+;   43	  _u_flt_info(n,&_info);
+	LD	BC,__info
+	PUSH	BC
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	__u_flt_info
+	POP	BC
+	POP	BC
+	POP	BC
+;   44	  if (ndig > FLT_DIG) 
+	LD	BC,(IX+-15)
+	LD	A,(IX+-12)
+	LD	HL,6
+	LD	E,0
+	CALL	__lcmpu
+	JR	NC,L_1
+;   45	    _u_flt_rnd(&_info,FLT_DIG);
+	LD	BC,6
+	PUSH	BC
+	LD	BC,__info
+	PUSH	BC
+	CALL	__u_flt_rnd
+	POP	BC
+	POP	BC
+;   46	  else
+	JR	L_10
+L_1:
+;   47	    _u_flt_rnd(&_info,ndig);
+	LD	C,(IX+-15)
+	LD	B,0
+	PUSH	BC
+	LD	BC,__info
+	PUSH	BC
+	CALL	__u_flt_rnd
+	POP	BC
+	POP	BC
+L_10:
+;   48	
+;   49	  if (_info.flags == FLT_INFO_SIGN)
+	LD	A,(__info)
+	CP	A,1
+	JR	NZ,L_9
+;   50	    *(s++) = '-';
+	LD	HL,(IX+-3)
+	LD	(HL),45
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   51	  else if (__print_fmt.flags & FMT_FLAG_PLUS)
+	JR	L_12
+L_9:
+	LD	A,(___print_fmt+1)
+	AND	A,2
+	JR	Z,L_7
+;   52	    *(s++) = '+';
+	LD	HL,(IX+-3)
+	LD	(HL),43
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   53	  else if (__print_fmt.flags & FMT_FLAG_POUND)
+	JR	L_12
+L_7:
+	LD	A,(___print_fmt+1)
+	AND	A,8
+	JR	Z,L_12
+;   54	    *(s++) = ' ';
+	LD	HL,(IX+-3)
+	LD	(HL),32
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+L_12:
+;   55	
+;   56	  *(s++) = _info.digits[0] + '0';
+	LD	BC,(IX+-3)
+	LD	(IX+-30),BC
+	LD	BC,__info+2
+	LD	(IX+-18),BC
+	LD	HL,BC
+	LD	A,(HL)
+	ADD	A,48
+	LD	HL,(IX+-30)
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   57	  if (__print_fmt.precision != 0)
+	LD	A,(___print_fmt+6)
+	OR	A,A
+	JR	Z,L_20
+;   58	    *(s++) = '.';
+	LD	HL,(IX+-3)
+	LD	(HL),46
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+L_20:
+;   59	  for (i=1; i < ndig; i++)
+	LD	BC,1
+	LD	(IX+-11),BC
+	XOR	A,A
+	LD	(IX+-8),A
+	JR	L_19
+L_17:
+;   60	    *(s++) = _info.digits[(unsigned char) i] + '0';
+	LD	BC,(IX+-3)
+	LD	(IX+-33),BC
+	LD	A,(IX+-11)
+	UEXT	HL
+	LD	L,A
+	LD	BC,(IX+-18)
+	ADD	HL,BC
+	LD	A,(HL)
+	ADD	A,48
+	LD	HL,(IX+-33)
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+	LD	HL,(IX+-11)
+	LD	E,(IX+-8)
+	LD	A,1
+	CALL	__ladd_b
+	LD	(IX+-11),HL
+	LD	(IX+-8),E
+L_19:
+	LD	HL,(IX+-11)
+	LD	E,(IX+-8)
+	LD	BC,(IX+-15)
+	LD	A,(IX+-12)
+	CALL	__lcmpu
+	JR	C,L_17
+;   61	
+;   62	  if (!(__print_fmt.flags & FMT_FLAG_POUND) &&
+	LD	A,(___print_fmt+1)
+	AND	A,8
+	JR	NZ,L_30
+;   63	      (__print_fmt.type == 'g' || __print_fmt.type == 'G')) {
+	LD	A,(___print_fmt+4)
+	CP	A,103
+	JR	Z,L_23
+	LD	A,(___print_fmt+4)
+	CP	A,71
+	JR	Z,L_23
+	JR	L_30
+;   64	    while (s[-1] == '0')	/* strip off trailing zero's */
+L_24:
+;   65	      --s;
+	LD	IY,(IX+-3)
+	LEA	IY,IY+-1
+	LD	(IX+-3),IY
+L_23:
+	LD	BC,16777215
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-21),HL
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,48
+	SBC	HL,BC
+	JR	Z,L_24
+;   66	    if (s[-1] == '.')
+	LD	HL,(IX+-21)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,46
+	SBC	HL,BC
+	JR	NZ,L_37
+;   67	      --s;			/* strip off . */
+	LD	IY,(IX+-3)
+	LEA	IY,IY+-1
+	LD	(IX+-3),IY
+;   68	  }
+;   69	  else if (ndig == 1 && !(__print_fmt.flags & FMT_FLAG_POUND))
+	JR	L_37
+L_30:
+	LD	HL,(IX+-15)
+	LD	E,(IX+-12)
+	LD	BC,1
+	XOR	A,A
+	CALL	__lcmpu
+	JR	NZ,L_37
+	LD	A,(___print_fmt+1)
+	AND	A,8
+	JR	NZ,L_37
+;   70	    --s;	/* remove decimal point */
+	LD	IY,(IX+-3)
+	LEA	IY,IY+-1
+	LD	(IX+-3),IY
+L_37:
+;   71	  *(s++) = isupper(__print_fmt.type) ? 'E' : 'e';
+	LD	A,(___print_fmt+4)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	PUSH	HL
+	CALL	_isupper
+	POP	BC
+	CALL	__icmpzero
+	JR	Z,L_35
+	LD	BC,69
+	LD	(IX+-24),BC
+	JR	L_36
+L_35:
+	LD	BC,101
+	LD	(IX+-24),BC
+L_36:
+	LD	BC,(IX+-3)
+	LD	(IX+-27),BC
+	LD	A,(IX+-24)
+	LD	HL,BC
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   72	
+;   73	  exp = _info.exp;
+	LD	A,(__info+1)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	(IX+-7),HL
+	LD	(IX+-4),H
+;   74	  if (exp < 0) {
+	LD	HL,(IX+-7)
+	LD	E,(IX+-4)
+	CALL	__lcmpzero
+	JP	P,L_41
+;   75	    *(s++) = '-';
+	LD	HL,(IX+-3)
+	LD	(HL),45
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   76	    exp = -exp;
+	LD	HL,(IX+-7)
+	LD	E,(IX+-4)
+	CALL	__lneg
+	LD	(IX+-7),HL
+	LD	(IX+-4),E
+;   77	  }
+;   78	  else
+	JR	L_43
+L_41:
+;   79	    *(s++) = '+';
+	LD	HL,(IX+-3)
+	LD	(HL),43
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+L_43:
+;   80	
+;   81	  /* For 4-byte floats, the exponent is between -37 and +38, or simply 0
+;   82	     to 38 after folding. */
+;   83	  /* e format always prints two digits in the exponent. */
+;   84	  *(s++) = exp / 10 + '0';
+	LD	BC,(IX+-3)
+	LD	(IX+-36),BC
+	LD	HL,(IX+-7)
+	LD	E,(IX+-4)
+	LD	BC,10
+	XOR	A,A
+	CALL	__ldivs
+	LD	A,48
+	CALL	__ladd_b
+	LD	BC,HL
+	LD	HL,(IX+-36)
+	LD	(HL),C
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   85	  *(s++) = exp % 10 + '0';
+	LD	HL,(IX+-7)
+	LD	E,(IX+-4)
+	LD	BC,10
+	XOR	A,A
+	CALL	__lrems
+	LD	A,48
+	CALL	__ladd_b
+	LD	BC,HL
+	LD	HL,(IX+-3)
+	LD	(HL),C
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   86	
+;   87	  *s = '\0';
+	LD	HL,BC
+	LD	(HL),0
+;   88	  return(s);
+	LD	HL,(IX+-3)
+;   89	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_dtoe ***************************
+;Name                         Addr/Register   Size   Type
+;_isupper                            IMPORT  -----   function
+;__u_flt_rnd                         IMPORT  -----   function
+;__info                              STATIC     12   variable
+;__u_flt_info                        IMPORT  -----   function
+;___print_fmt                        IMPORT     19   variable
+;___print_buff                       IMPORT  unknown variable
+;temp32                               IX-27      3   variable
+;temp33                               IX-24      3   variable
+;G_1                                  IX-21      3   variable
+;G_0                                  IX-18      3   variable
+;ndig                                 IX-15      4   variable
+;i                                    IX-11      4   variable
+;exp                                   IX-7      4   variable
+;s                                     IX-3      3   variable
+;n                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 48 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _isupper:ROM
+	XREF __u_flt_rnd:ROM
+	XREF __u_flt_info:ROM
+	XREF ___print_buff:ROM
+	XREF ___print_fmt:ROM
+	XREF __lcmpu:ROM
+	XREF __ldivs:ROM
+	XREF __lneg:ROM
+	XREF __lrems:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XREF __lcmpzero:ROM
+	XREF __ladd_b:ROM
+	XDEF __u_dtoe
+	XDEF __info
+	END

@@ -1,0 +1,194 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\LDEXP.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*                                                                      */
+;    3	/*                      Copyright (C)1987-2008 by                       */
+;    4	/*                              Zilog, Inc.                             */
+;    5	/*                                                                      */
+;    6	/*                          San Jose, California                        */
+;    7	/*                                                                      */
+;    8	/************************************************************************/
+;    9	#include <errno.h>
+;   10	#include <math.h>
+;   11	
+;   12	typedef union
+;   13	{
+;   14	    float             value;
+;   15	    unsigned long     bits;
+;   16	} Ieee754;
+;   17	
+;   18	enum
+;   19	{   //  The IEEE 754 format is:
+;   20	    //  SEEEEEEE EMMMMMMM MMMMMMMM MMMMMMMM
+;   21	    //  (with an implicit mantissa high-order 1-bit.)
+;   22	    mastissa_shift = 0,
+;   23	    mastissa_bits  = 23,
+;   24	    exponent_bits  = 8,
+;   25	    exponent_shift = mastissa_shift + mastissa_bits,
+;   26	    sign_shift     = exponent_shift + exponent_bits,
+;   27	    exponent_mask  = (1 << exponent_bits) -1,  // shifted = 0x7F800000
+;   28	    exponent_max   = (1 << exponent_bits) -1,
+;   29	    exponent_base  = 127,
+;   30	    exponent_min   = 0
+;   31	};
+;   32	
+;   33	// ldexp - Standard C library routine
+;   34	// ldexp returns the argument multiplied by an integral (positive or
+;   35	// negative) power of two.
+;   36	//
+;   37	// Arguments:
+;   38	//   value - the floating point argument
+;   39	//   power - the power of two to be used
+;   40	//
+;   41	// Returns:
+;   42	//   - the argument multiplied by an integral power of two
+;   43	//
+;   44	double ldexp( double value, int power )
+;   45	{
+_ldexp:
+	LD	HL,-14
+	CALL	__frameset
+;   46	    Ieee754 floating;
+;   47	    int     exponent;
+;   48		int powerplusexponent;
+;   49	
+;   50		if ( value == 0.0 ) return 0;
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JR	NZ,L_1
+	OR	A,A
+	SBC	HL,HL
+	LD	E,0
+	JR	L_10
+L_1:
+;   51	
+;   52		floating.value = value;
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   53	    exponent = (floating.bits >> exponent_shift) & exponent_mask;
+	LD	L,23
+	CALL	__lshru
+	LD	HL,BC
+	LD	A,L
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-10),HL
+;   54		powerplusexponent = power + exponent;
+	LD	BC,(IX+12)
+	ADD	HL,BC
+	LD	(IX+-7),HL
+;   55	
+;   56	    if ( powerplusexponent > exponent_max )
+	LD	BC,HL
+	LD	HL,255
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_8
+;   57	    {
+;   58			errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+;   59	        return (floating.bits & (1L << sign_shift)) == 0 ? HUGE_VAL : - HUGE_VAL;
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,0
+	LD	A,128
+	CALL	__land
+	CALL	__lcmpzero
+	JR	NZ,L_4
+	LD	BC,(__huge_val)
+	LD	A,(__huge_val+3)
+	LD	(IX+-14),BC
+	LD	(IX+-11),A
+	JR	L_5
+L_4:
+	LD	BC,(__huge_val)
+	LD	A,(__huge_val+3)
+	CALL	__fneg
+	LD	(IX+-14),BC
+	LD	(IX+-11),A
+L_5:
+	LD	HL,(IX+-14)
+	LD	E,(IX+-11)
+	JR	L_10
+;   60	    }
+L_8:
+;   61	    if ( powerplusexponent <= exponent_min )		// CR 3964
+	LD	BC,(IX+-7)
+	OR	A,A
+	SBC	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_9
+;   62	    {
+;   63			errno = ERANGE;
+	LD	BC,5
+	LD	(_errno),BC
+	OR	A,A
+;   64	        return 0.0;
+	SBC	HL,HL
+	LD	E,0
+	JR	L_10
+;   65	    }
+L_9:
+;   66	    floating.bits += (long) power << exponent_shift;  // adjust exponent
+	LD	BC,(IX+12)
+	CALL	__itol
+	LD	L,23
+	CALL	__lshl
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	CALL	__ladd
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   67	    return floating.value;
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+;   68	}
+L_10:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _ldexp ***************************
+;Name                         Addr/Register   Size   Type
+;__huge_val                          IMPORT      4   variable
+;_errno                              IMPORT      3   variable
+;temp2                                IX-14      4   variable
+;exponent                             IX-10      3   variable
+;powerplusexponent                     IX-7      3   variable
+;floating                              IX-4      4   variable
+;power                                IX+12      3   parameter
+;value                                 IX+6      4   parameter
+
+
+; Stack Frame Size: 29 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF __huge_val:ROM
+	XREF _errno:ROM
+	XREF __ladd:ROM
+	XREF __land:ROM
+	XREF __lshl:ROM
+	XREF __lshru:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __lcmpzero:ROM
+	XDEF _ldexp
+	END

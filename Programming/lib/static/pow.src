@@ -1,0 +1,187 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\POW.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by			*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	
+;   10	#include	<errno.h>
+;   11	#include	<math.h>
+;   12	
+;   13	double pow( double arg1, double arg2 ) {
+_pow:
+	LD	HL,-8
+	CALL	__frameset
+	OR	A,A
+;   14		double result;
+;   15		long temp;
+;   16	
+;   17		if ( arg1 > 0.0 ){
+	SBC	HL,HL
+	LD	E,0
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fcmp
+	JP	P,L_8
+;   18			return exp( arg2 * log( arg1 ) );
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_log
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	CALL	__fmul
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_exp
+	POP	BC
+	POP	BC
+	JR	L_12
+;   19		}
+L_8:
+;   20		if ( arg1 < 0.0 ){
+	LD	HL,(IX+6)
+	LD	E,(IX+9)
+	LD	BC,0
+	XOR	A,A
+	CALL	__fcmp
+	JP	P,L_10
+;   21			temp = arg2;
+;   22			if ( temp == arg2 ){
+	LD	BC,(IX+12)
+	LD	A,(IX+15)
+	CALL	__ftol
+	CALL	__ltof
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+12)
+	LD	A,(IX+15)
+	CALL	__fcmp
+	JR	NZ,L_6
+;   23				result = exp( arg2 * log( -arg1 ) );
+	LD	BC,(IX+6)
+	LD	A,(IX+9)
+	CALL	__fneg
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_log
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,(IX+12)
+	LD	E,(IX+15)
+	CALL	__fmul
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_exp
+	POP	BC
+	POP	BC
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+;   24				return temp & 1 ? -result : result;
+	LD	BC,(IX+12)
+	LD	A,(IX+15)
+	CALL	__ftol
+	LD	A,C
+	AND	A,1
+	UEXT	HL
+	LD	L,A
+	LD	E,H
+	CALL	__lcmpzero
+	JR	Z,L_3
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	CALL	__fneg
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+	JR	L_4
+L_3:
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	LD	(IX+-8),BC
+	LD	(IX+-5),A
+L_4:
+	LD	HL,(IX+-8)
+	LD	E,(IX+-5)
+	JR	L_12
+;   25			}
+L_6:
+;   26			errno = EDOM;
+	LD	BC,4
+	LD	(_errno),BC
+;   27		}
+L_10:
+	OR	A,A
+;   28		if ( arg2 <= 0.0 ){
+	SBC	HL,HL
+	LD	E,0
+	LD	BC,(IX+12)
+	LD	A,(IX+15)
+	CALL	__fcmp
+	JP	M,L_11
+;   29			errno = EDOM;
+	LD	BC,4
+	LD	(_errno),BC
+;   30		}
+L_11:
+	OR	A,A
+;   31		return 0.0;
+	SBC	HL,HL
+;   32	}
+L_12:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _pow ***************************
+;Name                         Addr/Register   Size   Type
+;_errno                              IMPORT      3   variable
+;_log                                IMPORT  -----   function
+;_exp                                IMPORT  -----   function
+;temp1                                 IX-8      4   variable
+;result                                IX-4      4   variable
+;arg2                                 IX+12      4   parameter
+;arg1                                  IX+6      4   parameter
+
+
+; Stack Frame Size: 26 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _log:ROM
+	XREF _exp:ROM
+	XREF _errno:ROM
+	XREF __fmul:ROM
+	XREF __fneg:ROM
+	XREF __fcmp:ROM
+	XREF __ftol:ROM
+	XREF __ltof:ROM
+	XREF __frameset:ROM
+	XREF __lcmpzero:ROM
+	XDEF _pow
+	END

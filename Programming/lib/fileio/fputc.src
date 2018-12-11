@@ -1,0 +1,43 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FPUTC.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	int fputc(int c, FILE *stream) {
+_fputc:
+	CALL	__frameset0
+;    5	    return ti_PutC((char)c, stream->slot);
+	LD	IY,(IX+9)
+	LD	C,(IY+0)
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+6)
+	PUSH	BC
+	CALL	_ti_PutC
+	POP	BC
+	POP	BC
+;    6	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fputc ***************************
+;Name                         Addr/Register   Size   Type
+;_ti_PutC                            IMPORT  -----   function
+;stream                                IX+9      3   parameter
+;c                                     IX+6      3   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _ti_PutC:ROM
+	XREF __frameset0:ROM
+	XDEF _fputc
+	END

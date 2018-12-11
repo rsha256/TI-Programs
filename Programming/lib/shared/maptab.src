@@ -1,0 +1,158 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\MAPTAB.C"
+	.assume ADL=1
+	SEGMENT DATA
+___maptab:
+	DB	128
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	96
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	1
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	24
+	DB	24
+	DB	24
+	DB	24
+	DB	24
+	DB	24
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	8
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	20
+	DB	20
+	DB	20
+	DB	20
+	DB	20
+	DB	20
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	4
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	DB	2
+	XDEF ___maptab
+;    1	/************************************************************************/
+;    2	/*									*/
+;    3	/*			Copyright (C)1987-2008 by			*/
+;    4	/*		            Zilog, Inc.           			*/
+;    5	/*									*/
+;    6	/*		        San Jose, California     			*/
+;    7	/*									*/
+;    8	/************************************************************************/
+;    9	
+;   10	/*	Mapping table for isxxx functions	*/
+;   11	
+;   12	#define CTL	0x80	/* control character */
+;   13	#define WS	0x40	/* whitespace character */
+;   14	#define SP	0x20	/* space character */
+;   15	#define HEX	0x10	/* hex digit (A-Z,a-z) */
+;   16	#define UC	0x08	/* uppercase letter */
+;   17	#define LC	0x04	/* lowercase letter */
+;   18	#define PUN	0x02	/* punctuation */
+;   19	#define DIG	0x01	/* decimal digit (0-9) */
+;   20	
+;   21	__rom unsigned char __maptab[128] = {
+	END

@@ -1,0 +1,982 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\UDTOF.C"
+	.assume ADL=1
+	SEGMENT BSS
+__info:
+	DS	12
+;    1	/*************************************************
+;    2	 *  Copyright (C) 1999-2008 by  Zilog, Inc.
+;    3	 *  All Rights Reserved
+;    4	 *************************************************/
+;    5	
+;    6	#include <stddef.h>
+;    7	#include <format.h>
+;    8	#include <ctype.h>
+;    9	#include <string.h>
+;   10	#include <float.h>
+;   11	
+;   12	#ifndef _MULTI_THREAD
+;   13	struct flt_info _info;
+	SEGMENT CODE
+;   14	
+;   15	static char * write_f_digits(char * s, signed char exp, signed char ndig);
+;   16	static char * write_e_digits(char * s, signed char ndig);
+;   17	static char * write_exponent(char * s, char e, signed char exp);
+;   18	
+;   19	#else
+;   20	static char * write_f_digits(char * s, struct fmt_type* pfmt,struct flt_info* pinfo,signed char exp, signed char ndig);
+;   21	static char * write_e_digits(char * s, struct flt_info* pinfo,signed char ndig);
+;   22	static char * write_exponent(char * s, char e, signed char exp);
+;   23	#define __print_fmt (*fmt)
+;   24	#endif
+;   25	
+;   26	typedef long reg_t;
+;   27	typedef unsigned long ureg_t;
+;   28	
+;   29	
+;   30	/*************************************************
+;   31	*
+;   32	* _u_dtof - convert a double float to ASCII in f format
+;   33	*
+;   34	* Inputs:
+;   35	*	n - value to be converted
+;   36	*	s - target char array
+;   37	*	fmt - format structure with conversion info
+;   38	*
+;   39	* Locals:
+;   40	*	ndig - The number of significant digits to print.
+;   41	*		Assumed to lie in the range [0,127].
+;   42	*		For e format, this is 1 + precision.
+;   43	*		For f format, this is 1 + precision + exp.
+;   44	*
+;   45	* Returns:
+;   46	*	next address past the end of the string
+;   47	*
+;   48	*************************************************/
+;   49	#ifndef _MULTI_THREAD
+;   50	void _u_dtof(double n)
+;   51	#else
+;   52	char _mt_dtof(double n,char* __print_buff,struct fmt_type* fmt)
+;   53	#endif
+;   54	{
+__u_dtof:
+	LD	HL,-21
+	CALL	__frameset
+;   55	  register reg_t ndig;
+;   56	  register reg_t rdig;
+;   57	  register reg_t e;
+;   58	  char *  s = __print_buff;
+	LD	BC,___print_buff
+	LD	(IX+-3),BC
+;   59	#ifdef _MULTI_THREAD
+;   60	  struct flt_info _info;
+;   61	  char __print_leading_char = '\0';
+;   62	#endif
+;   63	
+;   64	  if (__print_fmt.precision < 0)
+	LD	A,(___print_fmt+6)
+	OR	A,A
+	JP	P,L_2
+;   65	    __print_fmt.precision = DEFAULT_PRECISION;
+	LD	A,6
+	LD	(___print_fmt+6),A
+L_2:
+;   66	
+;   67	  if (__print_fmt.field_width < 0)
+	LD	A,(___print_fmt+5)
+	OR	A,A
+	JP	P,L_3
+;   68	  {
+;   69	    __print_fmt.flags |= FMT_FLAG_MINUS;
+	LD	A,(___print_fmt+1)
+	SET	0,A
+	LD	(___print_fmt+1),A
+;   70	    __print_fmt.field_width = -__print_fmt.field_width;
+	LD	A,(___print_fmt+5)
+	NEG	
+	LD	(___print_fmt+5),A
+;   71	  }
+L_3:
+;   72	  rdig = ndig = __print_fmt.precision + 1;
+	LD	A,(___print_fmt+6)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	CALL	__itol
+	LD	E,A
+	LD	A,1
+	LD	HL,BC
+	CALL	__ladd_b
+	LD	(IX+-11),HL
+	LD	(IX+-8),E
+	LD	A,(IX+-8)
+	LD	(IX+-21),HL
+	LD	(IX+-18),A
+;   73	  _u_flt_info(n,&_info);
+	LD	BC,__info
+	PUSH	BC
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	__u_flt_info
+	POP	BC
+	POP	BC
+	POP	BC
+;   74	  if ((__print_fmt.type == 'f') && (_info.exp > 0))
+	LD	A,(___print_fmt+4)
+	CP	A,102
+	JR	NZ,L_8
+	XOR	A,A
+	LD	HL,__info+1
+	CP	A,(HL)
+	CALL	__setflag
+	JP	P,L_8
+;   75	    rdig += _info.exp;		// May be <0.
+	LD	A,(__info+1)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	E,H
+	LD	A,(IX+-8)
+	LD	BC,(IX+-11)
+	CALL	__ladd
+	LD	(IX+-21),HL
+	LD	(IX+-18),E
+L_8:
+;   76	
+;   77	  if (rdig > FLT_DIG)
+	LD	HL,6
+	LD	E,0
+	LD	BC,(IX+-21)
+	LD	A,(IX+-18)
+	CALL	__lcmps
+	CALL	__setflag
+	JP	P,L_7
+;   78	    _u_flt_rnd(&_info, FLT_DIG+1);	// Round to the last significant digit.
+	LD	BC,7
+	PUSH	BC
+	LD	BC,__info
+	PUSH	BC
+	CALL	__u_flt_rnd
+	POP	BC
+	POP	BC
+;   79	  else
+	JR	L_11
+L_7:
+;   80	    _u_flt_rnd(&_info, rdig);		// Round into the last digit printed.
+	LD	C,(IX+-21)
+	LD	B,0
+	PUSH	BC
+	LD	BC,__info
+	PUSH	BC
+	CALL	__u_flt_rnd
+	POP	BC
+	POP	BC
+L_11:
+;   81	
+;   82	  if (__print_fmt.type == 'f' && (_info.exp > 0))
+	LD	A,(___print_fmt+4)
+	CP	A,102
+	JR	NZ,L_18
+	XOR	A,A
+	LD	HL,__info+1
+	CP	A,(HL)
+	CALL	__setflag
+	JP	P,L_18
+;   83	  {
+;   84	     ndig += _info.exp;
+	LD	A,(__info+1)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	E,H
+	LD	A,(IX+-8)
+	LD	BC,(IX+-11)
+	CALL	__ladd
+	LD	(IX+-11),HL
+	LD	(IX+-8),E
+;   85	  }
+L_18:
+;   86	
+;   87	  if (_info.flags & FLT_INFO_SIGN)
+	LD	A,(__info)
+	AND	A,1
+	JR	Z,L_17
+;   88	    e = '-';
+	LD	BC,45
+	LD	(IX+-7),BC
+	XOR	A,A
+	LD	(IX+-4),A
+;   89	  else if (__print_fmt.flags & FMT_FLAG_PLUS)
+	JR	L_23
+L_17:
+	LD	A,(___print_fmt+1)
+	AND	A,2
+	JR	Z,L_15
+;   90	    e = '+';
+	LD	BC,43
+	LD	(IX+-7),BC
+	XOR	A,A
+	LD	(IX+-4),A
+;   91	  else if (__print_fmt.flags & FMT_FLAG_SPACE)
+	JR	L_23
+L_15:
+	LD	A,(___print_fmt+1)
+	AND	A,4
+	JR	Z,L_13
+;   92	    e = ' ';
+	LD	BC,32
+	LD	(IX+-7),BC
+	XOR	A,A
+	LD	(IX+-4),A
+;   93	  else
+	JR	L_23
+L_13:
+;   94	   e = '\0';
+	LD	BC,0
+	LD	(IX+-7),BC
+	XOR	A,A
+	LD	(IX+-4),A
+L_23:
+;   95	  if (__print_fmt.flags & FMT_FLAG_PAD_ZERO)
+	LD	A,(___print_fmt+1)
+	AND	A,64
+	JR	Z,L_22
+;   96	    __print_leading_char = e;
+	LD	A,(IX+-7)
+	LD	(___print_leading_char),A
+;   97	  else if (e)
+	JR	L_29
+L_22:
+	LD	HL,(IX+-7)
+	LD	E,(IX+-4)
+	CALL	__lcmpzero
+	JR	Z,L_29
+;   98	    *(s++) = e;
+	LD	A,(IX+-7)
+	LD	HL,(IX+-3)
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+L_29:
+;   99	
+;  100	  if (_info.flags & FLT_INFO_INF)
+	LD	A,(__info)
+	AND	A,2
+	JR	Z,L_34
+;  101	  {
+;  102	    /* This is infinity (+ or -). */
+;  103	    if (__print_fmt.flags & FMT_FLAG_UPPERCASE)
+	LD	A,(___print_fmt+1)
+	AND	A,32
+	JR	Z,L_25
+;  104	      strcpy(s,"INF");
+	LD	BC,L__14
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_strcpy
+	POP	BC
+	POP	BC
+;  105	    else
+	JR	L_26
+L_25:
+;  106	      strcpy(s,"inf");
+	LD	BC,L__15
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_strcpy
+	POP	BC
+	POP	BC
+;  107	    goto out;
+	JR	L_26
+;  108	  }
+L_34:
+;  109	
+;  110	  if (_info.flags & FLT_INFO_NAN)
+	LD	A,(__info)
+	AND	A,4
+	JR	Z,L_36
+;  111	  {
+;  112	    /* This is not a number (+ or -). */
+;  113	    if (__print_fmt.flags & FMT_FLAG_UPPERCASE)
+	LD	A,(___print_fmt+1)
+	AND	A,32
+	JR	Z,L_31
+;  114	      strcpy(s,"NAN");
+	LD	BC,L__18
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_strcpy
+	POP	BC
+	POP	BC
+;  115	    else
+	JR	L_26
+L_31:
+;  116	      strcpy(s,"nan");
+	LD	BC,L__19
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_strcpy
+	POP	BC
+	POP	BC
+;  117	    goto out;
+	JR	L_26
+;  118	  }
+L_36:
+;  119	
+;  120	  if (__print_fmt.type == 'e')
+	LD	A,(___print_fmt+4)
+	CP	A,101
+	JR	NZ,L_38
+;  121	#ifndef _MULTI_THREAD
+;  122	    s = write_e_digits(s, ndig);
+	LD	C,(IX+-11)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_write_e_digits
+	POP	BC
+	POP	BC
+	LD	(IX+-3),HL
+L_38:
+;  123	#else
+;  124	    s = write_e_digits(s,&_info,ndig);
+;  125	#endif
+;  126	  if (__print_fmt.type == 'f')
+	LD	A,(___print_fmt+4)
+	CP	A,102
+	JR	NZ,L_44
+;  127	#ifndef _MULTI_THREAD
+;  128	    s = write_f_digits(s, _info.exp, ndig);
+	LD	C,(IX+-11)
+	LD	A,(__info+1)
+	LD	B,0
+	PUSH	BC
+	LD	C,A
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_write_f_digits
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-3),HL
+L_44:
+;  129	#else
+;  130	    s = write_f_digits(s,fmt,&_info,_info.exp,ndig);
+;  131	#endif
+;  132	
+;  133	  /* If g format and not #, strip of trailing zeros. */
+;  134	  if (__print_fmt.flags & FMT_FLAG_STRIP)
+	LD	A,(___print_fmt+1)
+	AND	A,128
+	JR	Z,L_48
+;  135	  {
+;  136	    __print_fmt.pad_post_fract = 0;
+	XOR	A,A
+	LD	(___print_fmt+15),A
+;  137	    while (s[-1] == '0')	/* strip off trailing zero's */
+	JR	L_39
+L_40:
+;  138	      --s;
+	LD	IY,(IX+-3)
+	LEA	IY,IY+-1
+	LD	(IX+-3),IY
+L_39:
+	LD	BC,16777215
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-17),HL
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,48
+	SBC	HL,BC
+	JR	Z,L_40
+;  139		if (s[-1] == '.')
+	LD	HL,(IX+-17)
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,46
+	SBC	HL,BC
+	JR	NZ,L_48
+;  140		  __print_fmt.pad_pre_fract = 0;
+	XOR	A,A
+	LD	(___print_fmt+14),A
+;  141	  }
+L_48:
+;  142	  /* Strip off the trailing decimal point, unless prevented by #. */
+;  143	  if (s[-1] == '.' && 
+	LD	BC,16777215
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	OR	A,A
+	LD	BC,46
+	SBC	HL,BC
+	JR	NZ,L_54
+;  144	      ((__print_fmt.pad_pre_fract+__print_fmt.pad_post_fract) == 0) &&
+	LD	A,(___print_fmt+14)
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	A,(___print_fmt+15)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,BC
+	CALL	__icmpzero
+	JR	NZ,L_54
+;  145	      !(__print_fmt.flags & FMT_FLAG_POUND))
+	LD	A,(___print_fmt+1)
+	AND	A,8
+	JR	NZ,L_54
+;  146	    --s;
+	LD	IY,(IX+-3)
+	LEA	IY,IY+-1
+	LD	(IX+-3),IY
+L_54:
+;  147	
+;  148	  if (__print_fmt.type == 'e')
+	LD	A,(___print_fmt+4)
+	CP	A,101
+	JR	NZ,L_55
+;  149	  {
+;  150	    e = __print_fmt.flags & FMT_FLAG_UPPERCASE ? 'E' : 'e';
+	LD	A,(___print_fmt+1)
+	AND	A,32
+	JR	Z,L_51
+	LD	BC,69
+	LD	(IX+-14),BC
+	JR	L_52
+L_51:
+	LD	BC,101
+	LD	(IX+-14),BC
+L_52:
+	LD	BC,(IX+-14)
+	CALL	__itol
+	LD	(IX+-7),BC
+	LD	(IX+-4),A
+;  151	    s = write_exponent(s, e, _info.exp);
+	LD	A,(__info+1)
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	LD	C,(IX+-7)
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_write_exponent
+	POP	BC
+	POP	BC
+	POP	BC
+	LD	(IX+-3),HL
+;  152	  }
+L_55:
+;  153	
+;  154	  *s = '\0';
+	LD	HL,(IX+-3)
+	LD	(HL),0
+L_26:
+;  155	out:;
+;  156	#ifdef _MULTI_THREAD
+;  157	  return __print_leading_char;
+;  158	#endif
+;  159	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** __u_dtof ***************************
+;Name                         Addr/Register   Size   Type
+;_write_exponent                     STATIC  -----   function
+;_write_f_digits                     STATIC  -----   function
+;_write_e_digits                     STATIC  -----   function
+;_strcpy                             IMPORT  -----   function
+;___print_leading_char               IMPORT      1   variable
+;__u_flt_rnd                         IMPORT  -----   function
+;__info                              STATIC     12   variable
+;__u_flt_info                        IMPORT  -----   function
+;___print_fmt                        IMPORT     19   variable
+;___print_buff                       IMPORT  unknown variable
+;rdig                                 IX-21      4   variable
+;G_0                                  IX-17      3   variable
+;temp49                               IX-14      3   variable
+;ndig                                 IX-11      4   variable
+;e                                     IX-7      4   variable
+;s                                     IX-3      3   variable
+;n                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 33 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT STRSECT
+L__14:
+	DB	"INF"
+	DB	0
+L__15:
+	DB	"inf"
+	DB	0
+L__18:
+	DB	"NAN"
+	DB	0
+L__19:
+	DB	"nan"
+	DB	0
+	SEGMENT CODE
+;  160	
+;  161	#ifdef _MULTI_THREAD
+;  162	#define _info (*pinfo)
+;  163	#endif
+;  164	
+;  165	/*
+;  166	 * exp+1- counts the number of digits to the left of the decimal point
+;  167	 * ndig	- counts the number of significant digits to print.
+;  168	 */
+;  169	#ifndef _MULTI_THREAD
+;  170	static char * write_f_digits(char * s, signed char exp, signed char ndig)
+;  171	#else
+;  172	static char * write_f_digits(char * s, struct fmt_type* fmt,struct flt_info* pinfo,signed char exp, signed char ndig)
+;  173	#endif
+;  174	{
+_write_f_digits:
+	LD	HL,-13
+	CALL	__frameset
+;  175	  ureg_t i = 0;
+	LD	BC,0
+	LD	(IX+-4),BC
+	XOR	A,A
+	LD	(IX+-1),A
+;  176	
+;  177	  /* Emit a leading zero, if needed. */
+;  178	  if (exp < 0) {
+	LD	A,(IX+9)
+	OR	A,A
+	JP	P,L_62
+;  179	    *(s++) = '0';
+	LD	HL,(IX+6)
+	LD	(HL),48
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  180		--ndig;
+	DEC	(IX+12)
+;  181	  }
+;  182	
+;  183	  while (exp >= 0 && i < MAXDIGITS)
+	JR	L_62
+L_63:
+;  184	  {
+;  185	    *(s++) = _info.digits[i++] + '0';
+	LD	HL,(IX+-4)
+	LD	BC,(IX+6)
+	LD	(IX+-7),BC
+	LD	IY,(IX+-7)
+	LD	BC,__info+2
+	ADD	HL,BC
+	LD	A,(HL)
+	ADD	A,48
+	LD	(IY),A
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	A,1
+	CALL	__ladd_b
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  186	    --ndig; --exp;
+	DEC	(IX+12)
+	DEC	(IX+9)
+;  187	  }
+L_62:
+	LD	A,(IX+9)
+	OR	A,A
+	JP	M,L_65
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,10
+	XOR	A,A
+	CALL	__lcmpu
+	JR	C,L_63
+L_65:
+;  188	  __print_fmt.pad_at = s;
+	LD	BC,(IX+6)
+	LD	(___print_fmt+16),BC
+;  189	  if (exp >= 0) {
+	LD	A,(IX+9)
+	OR	A,A
+	JP	M,L_68
+;  190	    __print_fmt.pad_whole = exp+1;
+	LD	A,(IX+9)
+	INC	A
+	LD	(___print_fmt+13),A
+;  191	    ndig -= (exp+1);
+	LD	B,(IX+9)
+	LD	A,(IX+12)
+	INC	B
+	SUB	A,B
+	LD	(IX+12),A
+;  192		exp = -1;
+	LD	(IX+9),255
+;  193	  }
+L_68:
+;  194	
+;  195	  *(s++) = '.';
+	LD	BC,(IX+6)
+	LD	(IX+-10),BC
+	LD	HL,BC
+	LD	(HL),46
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  196	
+;  197	
+;  198	  if (exp < -1) {
+	LD	A,(IX+9)
+	CP	A,-1
+	CALL	__setflag
+	JP	P,L_75
+;  199	    if (ndig > (-exp-1)) {
+	LD	A,(IX+9)
+	SEXT	HL
+	LD	L,(IX+9)
+	CALL	__ineg
+	LD	BC,HL
+	DEC	BC
+	LD	A,(IX+12)
+	SEXT	HL
+	LD	L,(IX+12)
+	LD	DE,HL
+	LD	HL,BC
+	OR	A,A
+	SBC	HL,DE
+	CALL	__setflag
+	JP	P,L_70
+;  200	      __print_fmt.pad_pre_fract = -(exp+1);
+	LD	A,(IX+9)
+	INC	A
+	NEG	
+	LD	(___print_fmt+14),A
+;  201		  ndig -= -(exp+1);
+	LD	A,(IX+9)
+	INC	A
+	NEG	
+	LD	B,A
+	LD	A,(IX+12)
+	SUB	A,B
+	LD	(IX+12),A
+;  202		  exp = -1;
+;  203	    }
+;  204	    else {
+	JR	L_75
+L_70:
+;  205	      __print_fmt.pad_pre_fract = ndig;
+	LD	A,(IX+12)
+	LD	(___print_fmt+14),A
+;  206		  ndig = 0;
+	LD	(IX+12),0
+;  207	    }
+;  208	  } 
+;  209	  while (ndig > 0 && i < MAXDIGITS)
+	JR	L_75
+L_76:
+;  210	  {
+;  211	    *(s++) = _info.digits[i++] + '0';
+	LD	HL,(IX+-4)
+	LD	BC,(IX+6)
+	LD	(IX+-13),BC
+	LD	IY,(IX+-13)
+	LD	BC,__info+2
+	ADD	HL,BC
+	LD	A,(HL)
+	ADD	A,48
+	LD	(IY),A
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	A,1
+	CALL	__ladd_b
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  212	    --ndig;
+	DEC	(IX+12)
+;  213	  }
+L_75:
+	XOR	A,A
+	CP	A,(IX+12)
+	CALL	__setflag
+	JP	P,L_79
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,10
+	XOR	A,A
+	CALL	__lcmpu
+	JR	C,L_76
+L_79:
+;  214	  if (ndig > 0) {
+	XOR	A,A
+	CP	A,(IX+12)
+	CALL	__setflag
+	JP	P,L_80
+;  215	    __print_fmt.pad_post_fract =ndig;
+	LD	A,(IX+12)
+	LD	(___print_fmt+15),A
+;  216		ndig = 0;
+;  217	  }
+L_80:
+;  218	
+;  219	  return s;
+	LD	HL,(IX+6)
+;  220	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _write_f_digits ***************************
+;Name                         Addr/Register   Size   Type
+;___print_fmt                        IMPORT     19   variable
+;__info                              STATIC     12   variable
+;i                                     IX-4      4   variable
+;ndig                                 IX+12      1   parameter
+;exp                                   IX+9      1   parameter
+;s                                     IX+6      3   parameter
+
+
+; Stack Frame Size: 28 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  221	
+;  222	#ifndef _MULTI_THREAD
+;  223	static char * write_e_digits(char * s, signed char ndig)
+;  224	#else
+;  225	static char * write_e_digits(char * s,struct flt_info* pinfo, signed char ndig)
+;  226	#endif
+;  227	{
+_write_e_digits:
+	LD	HL,-7
+	CALL	__frameset
+;  228	  ureg_t i = 0;
+;  229	
+;  230	  /* Emit the single digit to the left of the decimal point. */
+;  231	  *(s++) = _info.digits[i++] + '0';
+	LD	A,(__info+2)
+	ADD	A,48
+	LD	HL,(IX+6)
+	LD	(HL),A
+	LD	BC,1
+	LD	(IX+-4),BC
+	XOR	A,A
+	LD	(IX+-1),A
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  232	  --ndig;
+	DEC	(IX+9)
+;  233	
+;  234	  /* Emit the decimal point. */
+;  235	  *(s++) = '.';
+	LD	HL,BC
+	LD	(HL),46
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  236	
+;  237	  /* Emit the digits. */
+;  238	  while (ndig-- > 0 && i < MAXDIGITS)
+	JR	L_89
+L_90:
+;  239	    *(s++) = _info.digits[i++] + '0';
+	LD	HL,(IX+-4)
+	LD	BC,(IX+6)
+	LD	DE,__info+2
+	ADD	HL,DE
+	LD	(IX+-7),BC
+	LD	A,(HL)
+	ADD	A,48
+	LD	HL,BC
+	LD	(HL),A
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	A,1
+	CALL	__ladd_b
+	LD	(IX+-4),HL
+	LD	(IX+-1),E
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_89:
+	LD	B,(IX+9)
+	DEC	(IX+9)
+	XOR	A,A
+	CP	A,B
+	CALL	__setflag
+	JP	P,L_91
+	LD	HL,(IX+-4)
+	LD	E,(IX+-1)
+	LD	BC,10
+	XOR	A,A
+	CALL	__lcmpu
+	JR	C,L_90
+L_91:
+;  240	
+;  241	  return s;
+	LD	HL,(IX+6)
+;  242	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _write_e_digits ***************************
+;Name                         Addr/Register   Size   Type
+;__info                              STATIC     12   variable
+;i                                     IX-4      4   variable
+;ndig                                  IX+9      1   parameter
+;s                                     IX+6      3   parameter
+
+
+; Stack Frame Size: 19 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;  243	
+;  244	static char * write_exponent(char * s, char e, signed char exp)
+;  245	{
+_write_exponent:
+	LD	HL,-3
+	CALL	__frameset
+;  246	  /* Emit the exponent specifier. */
+;  247	  *(s++) = e;
+	LD	HL,(IX+6)
+	LD	A,(IX+9)
+	LD	(HL),A
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  248	
+;  249	  /* Emit the exponent sign. */
+;  250	  if (exp < 0) {
+	LD	A,(IX+12)
+	OR	A,A
+	JP	P,L_97
+;  251	    *(s++) = '-';
+	LD	HL,(IX+6)
+	LD	(HL),45
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  252	    exp = -exp;
+	LD	A,(IX+12)
+	NEG	
+	LD	(IX+12),A
+;  253	  }
+;  254	  else
+	JR	L_99
+L_97:
+;  255	    *(s++) = '+';
+	LD	HL,(IX+6)
+	LD	(HL),43
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+L_99:
+;  256	
+;  257	  /* Emit the two-digit exponent. */
+;  258	  /* For 4-byte floats, the exponent is between -37 and +38, or simply 0
+;  259	     to 38 after folding. */
+;  260	  *(s++) = exp / 10 + '0';
+	LD	BC,(IX+6)
+	LD	(IX+-3),BC
+	LD	A,(IX+12)
+	SEXT	HL
+	LD	L,(IX+12)
+	LD	BC,10
+	CALL	__idivs
+	LD	IY,HL
+	LEA	HL,IY+48
+	LD	IY,(IX+-3)
+	LD	(IY),L
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  261	  *(s++) = exp % 10 + '0';
+	LD	A,(IX+12)
+	SEXT	HL
+	LD	L,(IX+12)
+	LD	BC,10
+	CALL	__irems
+	LD	IY,HL
+	LEA	HL,IY+48
+	LD	IY,(IX+6)
+	LD	(IY),L
+	LD	BC,(IX+6)
+	INC	BC
+	LD	(IX+6),BC
+;  262	
+;  263	  return s;
+	LD	HL,BC
+;  264	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _write_exponent ***************************
+;Name                         Addr/Register   Size   Type
+;exp                                  IX+12      1   parameter
+;e                                     IX+9      1   parameter
+;s                                     IX+6      3   parameter
+
+
+; Stack Frame Size: 18 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _strcpy:ROM
+	XREF __u_flt_rnd:ROM
+	XREF __u_flt_info:ROM
+	XREF ___print_leading_char:ROM
+	XREF ___print_buff:ROM
+	XREF ___print_fmt:ROM
+	XREF __lcmps:ROM
+	XREF __lcmpu:ROM
+	XREF __ladd:ROM
+	XREF __idivs:ROM
+	XREF __ineg:ROM
+	XREF __irems:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XREF __lcmpzero:ROM
+	XREF __ladd_b:ROM
+	XDEF __u_dtof
+	XDEF __info
+	END

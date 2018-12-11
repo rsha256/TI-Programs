@@ -1,0 +1,48 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\LOG10.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <math.h>
+;    2	
+;    3	double log10(double x) {
+_log10:
+	CALL	__frameset0
+;    4	    return log(x) / M_LN10;
+	LD	C,(IX+9)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+6)
+	PUSH	BC
+	CALL	_log
+	POP	BC
+	POP	BC
+	LD	BC,HL
+	LD	HL,1269134
+	LD	A,E
+	LD	E,64
+	CALL	__fdiv
+	LD	E,A
+	LD	HL,BC
+;    5	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _log10 ***************************
+;Name                         Addr/Register   Size   Type
+;_log                                IMPORT  -----   function
+;x                                     IX+6      4   parameter
+
+
+; Stack Frame Size: 12 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _log:ROM
+	XREF __fdiv:ROM
+	XREF __frameset0:ROM
+	XDEF _log10
+	END

@@ -1,0 +1,121 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -nomodsect -peephole -globalopt -localcse
+; -const=ROM 
+	FILE	"..\FGETS.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdio.h>
+;    2	#include <fileioc.h>
+;    3	
+;    4	char *fgets(char *str, int num, FILE *stream) {
+_fgets:
+	LD	HL,-9
+	CALL	__frameset
+;    5	    int c;
+;    6	    char *p = str;
+	LD	BC,(IX+6)
+	LD	(IX+-3),BC
+;    7	
+;    8	    if (num == 1) {
+	LD	HL,(IX+9)
+	LD	BC,1
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_8
+;    9	        *p = 0;
+	LD	HL,(IX+6)
+	LD	(HL),0
+;   10	        return str;
+	LD	HL,(IX+6)
+	JR	L_13
+;   11	    }
+;   12	
+;   13	    for (; num > 1; num--) {
+L_6:
+;   14	        if ((c = fgetc(stream)) == EOF) {
+	LD	BC,(IX+12)
+	PUSH	BC
+	CALL	_fgetc
+	POP	BC
+	LD	(IX+-6),HL
+	LD	BC,16777215
+	OR	A,A
+	SBC	HL,BC
+	JR	Z,L_11
+;   15	            break;
+;   16	        }
+;   17	        *p++ = c;
+	LD	BC,(IX+-3)
+	LD	(IX+-9),BC
+	LD	A,(IX+-6)
+	LD	HL,BC
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   18	        if (c == '\n') {
+	LD	HL,(IX+-6)
+	OR	A,A
+	LD	BC,10
+	SBC	HL,BC
+	JR	Z,L_11
+	LD	BC,(IX+9)
+	DEC	BC
+	LD	(IX+9),BC
+;   19	            break;
+;   20	        }
+;   21	    }
+L_8:
+	LD	BC,(IX+9)
+	LD	HL,1
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_6
+L_11:
+;   22	
+;   23	    if (p == str) {
+	LD	BC,(IX+6)
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_12
+	OR	A,A
+;   24	        return NULL;
+	SBC	HL,HL
+	JR	L_13
+;   25	    }
+L_12:
+;   26	
+;   27	    *p = 0;
+	LD	HL,(IX+-3)
+	LD	(HL),0
+;   28	
+;   29	    return str;
+	LD	HL,(IX+6)
+;   30	}
+L_13:
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _fgets ***************************
+;Name                         Addr/Register   Size   Type
+;_fgetc                              IMPORT  -----   function
+;c                                     IX-6      3   variable
+;p                                     IX-3      3   variable
+;stream                               IX+12      3   parameter
+;num                                   IX+9      3   parameter
+;str                                   IX+6      3   parameter
+
+
+; Stack Frame Size: 24 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _fgetc:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XDEF _fgets
+	END
