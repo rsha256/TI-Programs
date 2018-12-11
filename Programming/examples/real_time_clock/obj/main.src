@@ -1,0 +1,140 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT DATA
+_seconds:
+	DW	0
+	DB	0
+;    1	#include <stdbool.h>
+;    2	#include <stddef.h>
+;    3	#include <stdint.h>
+;    4	#include <tice.h>
+;    5	
+;    6	#include <stdio.h>
+;    7	#include <stdlib.h>
+;    8	#include <string.h>
+;    9	
+;   10	unsigned int seconds = 0;
+	SEGMENT CODE
+;   11	
+;   12	void main(void) {
+_main:
+;   13	
+;   14	    /* Clear the homescreen */
+;   15	    os_ClrHome();
+	LD	BC,_asm_ClrLCD
+	PUSH	BC
+	CALL	__OS
+	POP	BC
+	LD	BC,_asm_HomeUp
+	PUSH	BC
+	CALL	__OS
+	POP	BC
+	LD	BC,_asm_DrawStatusBar
+	PUSH	BC
+	CALL	__OS
+	POP	BC
+;   16	
+;   17	    /* Randomize things */
+;   18	    srand(rtc_Time());
+	LD	BC,(15925316)
+	PUSH	BC
+	CALL	_srand
+	POP	BC
+;   19	
+;   20	    /* Configure the RTC */
+;   21	    rtc_LoadSeconds = rtc_LoadMinutes = rtc_LoadHours = rtc_LoadDays = 0;
+	LD	HL,15925296
+	LD	(HL),0
+	INC	HL
+	LD	(HL),0
+	LD	A,(15925296)
+	LD	(15925292),A
+	LD	(15925288),A
+	LD	(15925284),A
+;   22	    rtc_Control = RTC_ENABLE | RTC_LOAD | RTC_SEC_INT_SOURCE;
+	LD	A,195
+	LD	(15925280),A
+;   23	
+;   24	    /* Wait for the RTC to load in the new values and then acknowledge all the interrupts */
+;   25	    while (rtc_IsBusy());
+L_4:
+	LD	A,(15925280)
+	AND	A,64
+	JR	NZ,L_4
+;   26	    rtc_IntAcknowledge = RTC_INT_MASK;
+	LD	A,63
+	LD	(15925300),A
+;   27	
+;   28	    /* Wait until 5 seconds have passed */
+;   29	    while (seconds < 5) {
+	JR	L_8
+L_9:
+;   30	
+;   31	        /* If a second passed, increment the second counter */
+;   32	        if (rtc_IntStatus & RTC_SEC_INT) {
+	LD	A,(15925300)
+	AND	A,1
+	JR	Z,L_8
+;   33	            memset(lcd_Ram, randInt(0,255), LCD_SIZE);
+	LD	BC,153600
+	PUSH	BC
+	CALL	_random
+	LD	A,L
+	UEXT	HL
+	LD	L,A
+	PUSH	HL
+	LD	BC,13893632
+	PUSH	BC
+	CALL	_memset
+	POP	BC
+	POP	BC
+	POP	BC
+;   34	            seconds++;
+	LD	BC,(_seconds)
+	INC	BC
+	LD	(_seconds),BC
+;   35	
+;   36	            rtc_IntAcknowledge = rtc_IntStatus;
+	LD	A,(15925300)
+	LD	(15925300),A
+;   37	        }
+;   38	    }
+L_8:
+	LD	BC,5
+	LD	HL,(_seconds)
+	OR	A,A
+	SBC	HL,BC
+	JR	C,L_9
+;   39	}
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_seconds                            STATIC      3   variable
+;_random                             IMPORT  -----   function
+;_memset                             IMPORT  -----   function
+;_srand                              IMPORT  -----   function
+;_asm_DrawStatusBar                  IMPORT  -----   function
+;_asm_HomeUp                         IMPORT  -----   function
+;_asm_ClrLCD                         IMPORT  -----   function
+;__OS                                IMPORT  -----   function
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _memset:ROM
+	XREF _srand:ROM
+	XREF _asm_DrawStatusBar:ROM
+	XREF _asm_ClrLCD:ROM
+	XREF _asm_HomeUp:ROM
+	XREF __OS:ROM
+	XREF _random:ROM
+	XDEF _main
+	XDEF _seconds
+	END

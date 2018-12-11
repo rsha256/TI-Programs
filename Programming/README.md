@@ -1,4 +1,4 @@
-###### This is for those who have mastered the ways of TI-Basic and wish to ascent to C and Asm 
+###### This is for those who have mastered the ways of TI-Basic and wish to ascend to C and Asm 
 
 #### Prerequisites
 
@@ -8,7 +8,7 @@
 
 ## How to actually code
 
-- `cp -r template/ yourProjectName/` and then code ur prgm in `yourProjectName/src/main.c` 
+- `cp -r template/ yourProjectName/` and then code your prgm in `yourProjectName/src/main.c` 
 
 
 ## How to run
