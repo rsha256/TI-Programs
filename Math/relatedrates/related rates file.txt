@@ -1,0 +1,3 @@
+RELRATES
+
+This program will compute related rates for Pythagorean triangle problems and circles. The triangle has a choice of determining the rate at which a leg or the hypotenuse changes. The circle has a choice of determining if the radius or the area is changing. These problems are popular introduction problems in a calculus I course. The user inputs the required information and the program outputs the answer. Enjoy!

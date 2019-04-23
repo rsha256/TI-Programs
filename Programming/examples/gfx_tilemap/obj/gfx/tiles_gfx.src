@@ -1,0 +1,90 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\GFX\TILES_GFX.C"
+	.assume ADL=1
+	SEGMENT DATA
+_tiles_gfx_pal:
+	DW	32546
+	DW	49932
+	DW	8493
+	DW	7488
+	DW	7750
+	DW	56273
+	DW	60283
+	DW	12687
+	DW	30577
+	DW	25866
+	DW	24380
+	DW	28573
+	DW	9685
+	DW	21208
+	DW	54099
+	DW	28076
+	DW	16913
+	DW	15102
+	DW	30286
+	DW	58137
+	DW	23053
+	DW	59120
+	DW	32496
+	DW	20187
+	DW	28334
+	DW	18861
+	DW	12989
+	DW	65535
+	DW	3725
+	DW	26218
+	DW	27341
+	DW	8913
+	DW	6338
+	DW	23088
+	DW	45690
+	DW	31662
+	DW	28204
+	DW	10807
+	DW	14758
+	DW	1056
+	DW	60147
+	DW	11496
+	DW	61202
+	DW	57005
+	DW	23121
+	DW	28464
+	DW	52030
+	DW	58204
+	DW	29593
+	DW	30612
+	DW	31440
+	DW	15657
+	DW	12988
+	DW	15856
+	DW	29495
+	DW	7365
+	DW	9515
+	DW	6661
+	DW	59053
+	DW	53111
+	DW	13675
+	DW	52056
+	DW	49962
+	DW	9477
+	DW	27583
+	DW	20613
+	DW	44365
+	DW	56091
+	DW	9684
+	DW	20003
+	DW	24905
+	DW	37322
+	DW	11735
+	DW	51052
+	DW	64307
+	DW	47891
+	XDEF _tiles_gfx_pal
+;    1	// convpng
+;    2	#include <stdint.h>
+;    3	#include "tiles_gfx.h"
+;    4	
+;    5	uint16_t tiles_gfx_pal[76] = {
+	END

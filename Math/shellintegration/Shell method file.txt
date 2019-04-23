@@ -1,0 +1,3 @@
+SHELL
+
+This program performs the shell method of integration. It outputs "pi times" the result of 2* integral. If the result can be converted into a fraction it will convert. Should work well if the rectangle used to generate the shell is perpendicular to the axis of rotation. Enjoy!

@@ -1,0 +1,333 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT CODE
+;    1	#include <stdbool.h>
+;    2	#include <stddef.h>
+;    3	#include <stdint.h>
+;    4	#include <tice.h>
+;    5	
+;    6	#include <math.h>
+;    7	#include <stdio.h>
+;    8	#include <stdlib.h>
+;    9	#include <string.h>
+;   10	
+;   11	#include <graphx.h>
+;   12	
+;   13	/* Include the graphics */
+;   14	#include "gfx/tiles_gfx.h"
+;   15	#include "gfx/var_gfx.h"
+;   16	
+;   17	/* Include the external map data */
+;   18	extern uint8_t tilemap_map[];
+;   19	
+;   20	/* Tilemap defines */
+;   21	#define TILE_WIDTH          16
+;   22	#define TILE_HEIGHT         16
+;   23	
+;   24	#define TILEMAP_WIDTH       32
+;   25	#define TILEMAP_HEIGHT      25
+;   26	
+;   27	#define TILEMAP_DRAW_WIDTH  20
+;   28	#define TILEMAP_DRAW_HEIGHT 14
+;   29	
+;   30	#define Y_OFFSET            16
+;   31	#define X_OFFSET            0
+;   32	
+;   33	void main(void) {
+_main:
+	LD	HL,-25
+	CALL	__frameset
+;   34	    sk_key_t key;
+;   35	    unsigned int x_offset = 0;
+	LD	BC,0
+	LD	(IX+-3),BC
+;   36	    unsigned int y_offset = 0;
+	LD	(IX+-6),BC
+;   37	    gfx_tilemap_t tilemap;
+;   38	
+;   39	    /* Initialize the graphics */
+;   40	    var_gfx_init();
+	CALL	_var_gfx_init
+;   41	
+;   42	    /* Initialize the tilemap structure */
+;   43	    tilemap.map         = tilemap_map;
+	LD	BC,_tilemap_map
+	LD	(IX+-25),BC
+;   44	    tilemap.tiles       = tileset_tiles;
+	LD	BC,_tileset_tiles_data
+	LD	(IX+-22),BC
+;   45	    tilemap.type_width  = gfx_tile_16_pixel;
+	LD	(IX+-15),4
+;   46	    tilemap.type_height = gfx_tile_16_pixel;
+	LD	(IX+-14),4
+;   47	    tilemap.tile_height = TILE_HEIGHT;
+	LD	(IX+-19),16
+;   48	    tilemap.tile_width  = TILE_WIDTH;
+	LD	(IX+-18),16
+;   49	    tilemap.draw_height = TILEMAP_DRAW_HEIGHT;
+	LD	(IX+-17),14
+;   50	    tilemap.draw_width  = TILEMAP_DRAW_WIDTH;
+	LD	(IX+-16),20
+;   51	    tilemap.height      = TILEMAP_HEIGHT;
+	LD	(IX+-13),25
+;   52	    tilemap.width       = TILEMAP_WIDTH;
+	LD	(IX+-12),32
+;   53	    tilemap.y_loc       = Y_OFFSET;
+	LD	(IX+-11),16
+;   54	    tilemap.x_loc       = X_OFFSET;
+	LD	BC,0
+	LD	(IX+-10),BC
+;   55	
+;   56	    /* Initialize the 8bpp graphics */
+;   57	    gfx_Begin();
+	CALL	_gfx_Begin
+;   58	
+;   59	    /* Set up the palette */
+;   60	    gfx_SetPalette(tiles_gfx_pal, sizeof_tiles_gfx_pal, 0);
+	LD	BC,0
+	PUSH	BC
+	LD	HL,_var_gfx+3
+	LD	BC,152
+	PUSH	BC
+	LD	BC,(HL)
+	PUSH	BC
+	CALL	_gfx_SetPalette
+	POP	BC
+	POP	BC
+	POP	BC
+;   61	    gfx_SetColor(gfx_white);
+	LD	BC,255
+	PUSH	BC
+	CALL	_gfx_SetColor
+	POP	BC
+;   62	
+;   63	    /* Draw to buffer to avoid tearing */
+;   64	    gfx_SetDrawBuffer();
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_SetDraw
+	POP	BC
+;   65	
+;   66	    /* Set monospace font with width of 8 */
+;   67	    gfx_SetMonospaceFont(8);
+	LD	BC,8
+	PUSH	BC
+	CALL	_gfx_SetMonospaceFont
+	POP	BC
+;   68	
+;   69	    /* Wait for the enter key to quit */
+;   70	    while ((key = os_GetCSC()) != sk_Enter) {
+	JR	L_14
+L_15:
+;   71	
+;   72	        /* Draw tilemap and coords */
+;   73	        gfx_Tilemap(&tilemap, x_offset, y_offset);
+	LD	BC,(IX+-6)
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	PEA	IX+-25
+	CALL	_gfx_Tilemap
+	POP	BC
+	POP	BC
+	POP	BC
+;   74	        gfx_FillRectangle(0, 0, 320, 16);
+	LD	BC,16
+	PUSH	BC
+	LD	BC,320
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	PUSH	BC
+	CALL	_gfx_FillRectangle
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   75	        gfx_PrintStringXY("x offset:", 48, 4);
+	LD	BC,4
+	PUSH	BC
+	LD	BC,48
+	PUSH	BC
+	LD	BC,L__0
+	PUSH	BC
+	CALL	_gfx_PrintStringXY
+	POP	BC
+	POP	BC
+	POP	BC
+;   76	        gfx_PrintUInt(x_offset, 4);
+	LD	BC,4
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_gfx_PrintUInt
+	POP	BC
+	POP	BC
+;   77	        gfx_PrintString(" y offset:");
+	LD	BC,L__1
+	PUSH	BC
+	CALL	_gfx_PrintString
+	POP	BC
+;   78	        gfx_PrintUInt(y_offset, 4);
+	LD	BC,4
+	PUSH	BC
+	LD	BC,(IX+-6)
+	PUSH	BC
+	CALL	_gfx_PrintUInt
+	POP	BC
+	POP	BC
+;   79	
+;   80	        /* Do something based on the keypress */
+;   81	        switch (key) {
+	LD	A,(IX+-7)
+	UEXT	HL
+	LD	L,A
+	CALL	__seqcase
+L__2:
+	DW	4
+	DW	1
+	DB	0
+	DW24	L_0	
+
+	DW24	L_3	
+
+	DW24	L_6	
+
+	DW24	L_9	
+
+	DW24	L_13	
+
+;   82	            case sk_Down:
+L_0:
+;   83	                if (y_offset < (TILEMAP_HEIGHT * TILE_HEIGHT) - (TILEMAP_DRAW_HEIGHT * TILE_HEIGHT))
+	LD	BC,176
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_13
+;   84	                    y_offset += TILE_HEIGHT;
+	LD	IY,(IX+-6)
+	LEA	IY,IY+16
+	LD	(IX+-6),IY
+;   85	                break;
+	JR	L_13
+;   86	            case sk_Left:
+L_3:
+;   87	                if (x_offset)
+	LD	HL,(IX+-3)
+	CALL	__icmpzero
+	JR	Z,L_13
+;   88	                    x_offset -= TILE_WIDTH;
+	LD	IY,(IX+-3)
+	LEA	IY,IY+-16
+	LD	(IX+-3),IY
+;   89	                break;
+	JR	L_13
+;   90	            case sk_Right:
+L_6:
+;   91	                if (x_offset < (TILEMAP_WIDTH * TILE_WIDTH) - (TILEMAP_DRAW_WIDTH * TILE_WIDTH))
+	LD	BC,192
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_13
+;   92	                    x_offset += TILE_WIDTH;
+	LD	IY,(IX+-3)
+	LEA	IY,IY+16
+	LD	(IX+-3),IY
+;   93	                break;
+	JR	L_13
+;   94	            case sk_Up:
+L_9:
+;   95	                if (y_offset)
+	LD	HL,(IX+-6)
+	CALL	__icmpzero
+	JR	Z,L_13
+;   96	                    y_offset -= TILE_HEIGHT;
+	LD	IY,(IX+-6)
+	LEA	IY,IY+-16
+	LD	(IX+-6),IY
+;   97	                break;
+;   98	            default:
+;   99	                break;
+;  100	        }
+L_13:
+;  101	        gfx_SwapDraw();
+	CALL	_gfx_SwapDraw
+;  102	    }
+L_14:
+	CALL	_os_GetCSC
+	LD	(IX+-7),A
+	CP	A,9
+	JR	NZ,L_15
+;  103	
+;  104	    /* Close the graphics and return to the OS */
+;  105	    gfx_End();
+	CALL	_gfx_End
+;  106	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_End                            IMPORT  -----   function
+;_os_GetCSC                          IMPORT  -----   function
+;_gfx_SwapDraw                       IMPORT  -----   function
+;_gfx_PrintString                    IMPORT  -----   function
+;_gfx_PrintUInt                      IMPORT  -----   function
+;_gfx_PrintStringXY                  IMPORT  -----   function
+;_gfx_FillRectangle                  IMPORT  -----   function
+;_gfx_Tilemap                        IMPORT  -----   function
+;_gfx_SetMonospaceFont               IMPORT  -----   function
+;_gfx_SetDraw                        IMPORT  -----   function
+;_gfx_SetColor                       IMPORT  -----   function
+;_var_gfx                            IMPORT      6   variable
+;_gfx_SetPalette                     IMPORT  -----   function
+;_gfx_Begin                          IMPORT  -----   function
+;_tileset_tiles_data                 IMPORT    384   variable
+;_tilemap_map                        IMPORT  unknown variable
+;_var_gfx_init                       IMPORT  -----   function
+;tilemap                              IX-25     18   variable
+;key                                   IX-7      1   variable
+;y_offset                              IX-6      3   variable
+;x_offset                              IX-3      3   variable
+
+
+; Stack Frame Size: 31 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	SEGMENT STRSECT
+L__0:
+	DB	"x offset:"
+	DB	0
+L__1:
+	DB	" y offset:"
+	DB	0
+	XREF _tilemap_map:ROM
+	XREF _var_gfx_init:ROM
+	XREF _tileset_tiles_data:ROM
+	XREF _var_gfx:ROM
+	XREF _gfx_SetMonospaceFont:ROM
+	XREF _gfx_PrintStringXY:ROM
+	XREF _gfx_PrintString:ROM
+	XREF _gfx_PrintUInt:ROM
+	XREF _gfx_SwapDraw:ROM
+	XREF _gfx_SetDraw:ROM
+	XREF _gfx_FillRectangle:ROM
+	XREF _gfx_SetPalette:ROM
+	XREF _gfx_SetColor:ROM
+	XREF _gfx_Tilemap:ROM
+	XREF _gfx_End:ROM
+	XREF _gfx_Begin:ROM
+	XREF _os_GetCSC:ROM
+	XREF __frameset:ROM
+	XREF __icmpzero:ROM
+	XREF __seqcase:ROM
+	XDEF _main
+	END

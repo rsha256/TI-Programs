@@ -1,0 +1,22 @@
+******READ THIS********
+
+INSTRUCTIONS:
+When you open up the program, specify if you want to find the perceived change in frequency with:
+1.The source of the sound moving towards the observer 
+2.The source of the sound moving away from the observer
+3.The observer moving towards the source of the sound
+4.The observer moving away from the source of the sound
+5.The source of the sound and the observer moving towards each other
+6.The source of the sound and the observer both moving apart from one another.
+
+YOU MUST BE ABLE TO:
+1.Input the speed of the source (annotated Vsc)
+2.Input the speed of the sound coming from the source (annotated Vsd)
+3.Input ***EITHER*** 
+	A)The initial frequency of the sound (annotated as either "fe" or "f") OR
+	B)The perceived (or new) frequency of the sound due to the Doppler Effect (annotated as "fh" or "f'")
+******IN ORDER FOR THE PROGRAM TO WORK***********
+	THIS IS HUGE!!!!!!!!!!!!!!!!!!!!!!!- YOU MUST INPUT WHICHEVER FREQUENCY YOU WANT TO FIND (fe/f or fh/f') as 0! 
+
+
+Hope you like the program!

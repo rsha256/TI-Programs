@@ -1,0 +1,519 @@
+FnOff 
+ClrHome
+AxesOff
+Lbl A
+Menu("AP STATS","FORMULAS",1,"TESTS",2,"QUIT",3)
+Lbl 1
+ClrHome
+Menu("GRAPH TEMPLATES","VECTORS",VC,"LINEAR MOTION",LM,"CIRCULAR MOTION",CM,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
+Lbl NT
+Menu("MECHANICS II","PREVIOUS",PS,"W.E.P.",WE,"MOMENTUM",MM,"HARM. MOTION",HM,"Rotations",RT,"DEFORM.FLUIDS",DF,"NEXT",NZ,"QUIT",3)
+Lbl NZ
+Menu("MECHANICS III","PREVIOUS",NT,"CALORIM.+GASES",C1,"Cv and Cp",CC,"ENGINE-FRIDGE",EA,"BACK",BA,"QUIT",3)
+Lbl EA
+ClrHome
+Disp "ENGINE(CW) PROBLEM STEPS
+Disp "1.STATE TABLE(P,V,T)
+Disp "2.PROCESSES TABLE(W,Q,U)
+Disp "3.TOTALS(W,Q,U)
+Disp "4.QHOT=SUM OF POS QS
+Disp "QCOLD=SUM OF NEG QS
+Disp "5.E=W/QHOT
+Disp "EcarnOt=((TH)-Tc)/(TH)
+Pause 
+ClrHome
+Disp "FRIDGE(CCW)
+Disp "QH=SUM OF ALL NEGATIVE Q
+Disp "K=­(QC)/W
+Disp "QH=SUM OF ALL POSITIVE Q
+
+
+Pause 
+Goto NZ
+
+Lbl CC
+ClrHome
+Disp "C
+Disp "v
+Disp "MONO:(3/2)R,DI:(5/2)R
+Disp "POLY:(7/2)R
+Disp "Cp
+Disp "MONO:(5/2)R,DI:(7/2)R
+Disp "POLY:(9/2)R
+Disp "GAMMA=(Cp/Cv)
+Pause 
+Goto NZ
+Lbl C1
+ClrHome
+Disp "PV=nRT   °C=(5/9)(F-32)
+Disp "PV=NKT   °F=(9/5)C+32
+Disp "Q=Mc deltaX   dL=(a)L(dT)
+Disp "T     WITHIN PHASES
+Disp "Q=+-ML    BTW PHASES
+Disp "W=S PdV,U=Q-W
+Disp "------------------------------
+Disp "isOP        S-INTEGRAL
+Disp "W=P(V2-V1),                     Q=nC   deltaX
+Disp "p
+Disp "T
+Disp "U=nC    deltaX,V1/T1=V2/T2
+Disp "T
+Disp "v
+Pause 
+ClrHome
+Disp "isOV
+Disp "W=0
+Disp "Q=nC    deltaX
+Disp "T
+Disp "p
+Disp "U=nC    deltaX,P1/T1=P2/T2
+Disp "T
+Disp "v
+Disp "------------------------------
+Disp "isOT
+Disp "W=nRTln(V2/V1)
+Disp "Q=nRTln(V2/V1)
+Disp "U=0,P1V1=P2V2
+Pause 
+ClrHome
+Disp "ADIABOLIC
+Disp "W=­nC    deltaX,Q=0
+Disp "T
+Disp "v
+
+Disp "U=nC    deltaX
+Disp "T
+Disp "v
+Disp "T1V1^(G-1)=T2V2^(G-1)
+Disp "P1(V1^G)=P2(V2^G)
+Disp "C   =C     R
+Disp "p
+Disp "v
+Pause 
+
+
+Goto NZ
+
+Lbl DF
+ClrHome
+Disp "MOD=STRESS/STRAIN
+Disp "DEFOR.      STRE.       STRA.     MOD
+Disp "TENSILE     F/A         ^L/L      Y(Pa)
+Disp "BULK                  ^p          ^V/V      B=1/K
+Disp "SHEAR             F/A          X/H           S
+
+Pause 
+ClrHome
+Disp "FLUIDS  P-PRESSURE p-DENSITY
+
+Disp "Z-VELOCITY
+Disp "P1+.5p(Z1)²+pG(Y1)=
+Disp "P2+.5p(Z2)²+pG(Y2)
+Disp "MASS RATE OF THE FLOW
+Disp "dM/dt=p1A1Z1=p2A2Z2
+Disp "VOLUME RATE OF FLOW
+Disp "dV/dt=A1Z1=A2Z2
+Disp "F1/A1=F2/A2
+Pause 
+
+Goto A
+Lbl PS
+Goto 1
+Lbl BA
+Goto A
+Lbl VC
+ClrHome
+Disp "X=Rcos(θ)
+Disp "Y=Rsin(θ)
+Disp "tan(θ)=Y/X
+Disp "distance traveled
+Disp "d=√(X²+Y²)=R²cos(θ)²+
+Disp "+R²sin(θ)²
+
+Disp "!I!=!J!=!K!=1
+
+Disp "ABsin(θ)=!A!!B!sin(θ)(I,J,K)
+Disp "A.B=!A!!B!cos(θ)(I,J,K)
+Pause 
+Goto 1
+
+Lbl LM
+ClrHome
+Disp "V=deltaX/deltaY
+Disp "t
+Disp "V=dX/dt
+Disp "a=V/t=dV/dt
+Pause 
+Disp "when a is constant
+Disp "df=Vb+at
+Disp "V
+Disp "deltaX=Vbt+.5at²
+Disp "df²=Vb²+2adeltaX
+Disp "V
+Pause 
+ClrHome
+Disp "2dim MOTION
+Disp "R=Vb²sin(2θ)/G
+Disp "R=Vb²2cos(θ)sin(θ)/G
+Pause 
+ClrHome
+Disp "MOVING REFERENCE FRAME
+Disp "V=V'+u,u-REF FRAME
+Pause 
+Goto 1
+Lbl CM
+Disp "a=V²/R - inward
+Disp "a=dv/dt - tangent point
+Disp "F=MV²/R
+Disp "vMIN=√(GR)=√(Mu*RG)
+Disp "Mu*Fn=Mus*(MV²/R)=MG
+Pause 
+Disp "V=2πr/T=2πdf         T=1df
+Disp "/
+Disp "r
+Disp "a=V²/R=4π²df²=4π²R/T^3
+Disp "R
+Pause 
+Goto 1
+Lbl NP
+ClrHome
+Disp "1.  i net ia
+Disp "2.  Σx=MA
+Disp "F
+Disp "3.  action - reaction
+Disp "Incline plane
+Disp "F!!=MGsin(θ),F!-=MGcos(θ)
+Disp "a=Gsin(θ) w/O FRICTION
+Disp "F=Mu*Fn
+Pause 
+ClrHome
+Disp "Cased banKed tracK
+Disp "V=√(Gtan(θ)R)
+Disp "Ncos(θ)=MG
+Disp "Nsin(θ)=MV²/R
+Pause 
+Goto 1
+Lbl PM
+ClrHome
+Disp "H=L(F-cos(θ))
+Disp "CONICAL PENDULUM
+Disp "X:Tsin(θ)=MV²/R
+Disp "Y:Tcos(θ)=MG
+Disp "tan(θ=V²/R
+Disp "T=2π√(Lcos(θ)/G)
+Disp "Tp=2π√(L/P)
+Pause 
+Goto 1
+Lbl GR
+Disp "F=(­GM2M1)/ R²
+Disp "sMaLL G = GM/R²
+Disp "U=(­GM1M2)/ R = ­GM SdM/R
+Disp "obJs near planet
+Disp "Et=.5Mv²-(GM1M2)/R
+Pause 
+ClrHome
+Disp "Sattelites
+Disp "v=√((GM)/R)
+Disp "Et=­(GM1M2)/2R
+Disp "Vesc=√(2GM/R)
+Disp "Mass distr.
+Disp "r1 v1=r2 v2
+Disp "G=6.7­11
+Disp "M'=(Mr)/R
+Pause 
+Goto 1
+Lbl WE
+ClrHome
+Disp "Work,Energy,Power
+Disp "W=FX=FXcos(θ)   F=­du/dX
+Disp "If A!-B => A.B=0
+Disp "If A!!B => A.B=AB
+Disp "I.J=I.K=J.K=0
+Disp "W= S FdX
+Disp "F=-KX - restoring Force
+Disp "PEs=.5KX²=U    U=MGH
+Disp "KE=.5MV²
+Pause 
+ClrHome
+Disp "net W=KE
+Disp "P=dW/dt=FV=FX/t
+Disp "[PE+KE]b=[PE+KEdf
+Disp "]
+Disp "U=­ S FXdy=.5KX²=MGH
+Disp "Fsin(θ)=­du/dsin(θ)
+Disp "F=dP/dt
+Disp "I= S Fdt=P
+Pause 
+ClrHome
+Disp "ELASTIC COLLISION
+Disp "V1-V2=V2-V1"
+Pause 
+Goto NT
+Lbl MM
+ClrHome
+Disp "p=MV
+Disp "F=p/t
+Disp "I= S Fdt
+Disp "MV=Ft
+Disp "[MV1+MV2]b=[MV1+MV2]a"
+Disp "REL VELOCITY CHANGES SIGN"
+Disp "V1-V2=V2-V1
+Pause 
+Goto NT
+Lbl HM
+ClrHome
+Disp "X=Asin(wt)
+Disp "V=Awcos(wt)
+Disp "a=-Aw²sin(wt)
+Disp "(X/A)²+(V/Aw)²=1
+Disp "(V/Aw)+(a/(Aw²))=1
+Disp "a=-w²X     Y=F(X-vt)
+Disp "XMAX=A,vMAX=Aw,aMAX=Aw²
+Disp "w=2π/T=√(K/M),T=1/F
+Disp "d²X/dt²=(­K/M)X
+Pause 
+ClrHome
+Disp "sin()-IF MOTION STARTS WHEN
+Disp "AMP=0
+Disp "cos()-AMP>0 or AMP<0
+Disp "E=.5KA²
+Disp "U=.5KX²,K=.5Mv²
+Disp "df=n/(2L)v=n/(2L)√(T/(Mu)
+Disp "Mu=M/L
+Disp "°F=Fs((Vw-V°)/(Vw-Vs))
+Disp "'+'-FROM SOURCE TO OBS
+Pause 
+ClrHome
+Disp "L=(n/2)(WAVELENGTH)
+Disp "v=F(WAVELENGTH)
+Pause 
+Goto NT
+Lbl RT
+ClrHome
+Disp "s=rθ     X->θ
+Disp "v=rw     v->w
+Disp "a=rA     a->A  
+Disp "T=rF     M->I
+Disp "KE=.5Iw²     T=F    P=Tw
+Disp "KE=.5Mv²+.5Iw²
+Pause 
+ClrHome
+Disp "L=rpsin(θ)
+Disp "Σx
+Disp "T=dL/dt    I=Σx
+Disp "Mr²
+Disp "Xc=(ΣxM)/M=(1/M) S rdM
+Pause 
+ClrHome
+Disp "L=Iw
+Disp "TO ROLL
+Disp "v=rw
+Disp "EQUILIBRIUM
+Disp "Σx
+Disp "F=0    Σx
+Disp 28,25,"T=0
+Disp "CROSS PRODUCT
+Disp "C=ABsin(θ)
+Disp "DOT PRODUCT
+Disp "A.B=ABcos(θ)
+Pause 
+ClrHome
+Disp "I(ROD/END)=(1/3)ML²
+Disp "I(ROD/CEN)=(1/12)ML²
+Disp "I(HCYL/Z)=MR²
+Disp "I(SCYL/Z)=(1/2)MR²
+Pause 
+Goto NT
+Lbl 2
+ClrHome
+Menu("TESTS","1 SAMPLE",1S,"FLUX LINES",FL,"ELEC POTENTIAL",EP,"Capacitors",CP,"Current ELectr",CU,"RC circuits",RC,"NEXT",NE,"QUIT",3)
+Lbl NE
+Menu("ELECTRICITY II","PREVIOUS",2,"MAGNETISM",MG,"MaGn. TRAJECTORY",MT,"MaGn. MOMents",MO,"COORDINATES",TT,"BacK",BB,"QUIT",3)
+Lbl TT
+ClrHome
+Disp "CARTISIAN X,Y,Z
+Disp "LENGTH:
+Disp "dX,dY,dZ->LINES
+Disp "AREAS:
+Disp "dXdY,dXdZ,dYdZ->PLANES
+Disp "VOLUME:
+Disp "dXdYdZ->CUBE
+Pause 
+ClrHome
+Disp "CYLIDRICAL  r,θ,Z
+Disp "LENGTH
+Disp "dr,dZ->L,rdθ->ARC,CIRCLE
+Disp "AREAS:    rdrdθ-PIE
+Disp "rdθdZ-HOL.CYL,drdZ-PLANE
+Disp "VOLUME
+Disp "rdrdθdZ-SOL.CYL
+Pause 
+ClrHome
+Disp "SPHERICAL   r,θ,o
+Disp "LENGTH
+Disp "dr-LINE,rdθ,rsin(θ)do-ARC,CIRCLE
+Disp "AREAS
+Disp "rdrdθ-PIE,r²sin(θ)dθdo-HOL.SPH
+Disp "rsin(θ)drdo-CONE
+Disp "r²sin(θ)drdθdo-SOLID SPHERE
+Pause 
+Goto NE
+Lbl BB
+Goto A
+Lbl EF
+Disp "F=(K !Q1! !Q2!)/R²
+Disp "K=9*10^9 = 1/(4πE)
+Disp "E=8.85*10^­12"
+Disp "!e!=!p!=1.6*10^­19 c
+Disp "F = QE = Ma => a = QE/M
+Disp "x = vt,y = .5at² = -(eEt²)/2M
+Disp "Mp = 1.67*10^­27KG
+Disp "1u = 1.66*10^­27KG = 931 MeV/c²
+Disp "E=F/Q=KQ/R²=V/D
+Pause 
+Goto 2
+Lbl FL
+ClrHome
+Disp "o-FLUX
+Disp "o=EA   E=KSdQ/R²
+Pause 
+Disp "o=EAcos(θ)
+Disp "oc=SE
+Disp ".
+Disp "dA
+Disp "deltaX
+Disp "o=E_i
+Disp ".
+Disp "deltaX
+Disp "A_i
+Pause 
+ClrHome
+Disp "o=Q/e
+Disp "e-EPSILON
+Pause 
+Disp "Sphere  KQ/R²   r>R
+Disp " KQr/R²   r<R
+Disp "SHELL      KQ/R²   r>R, 0 r<R
+Disp "LINE          2KZ/r
+Disp "Z-LAMDA
+Disp "PLANE σx
+Disp "/2e
+Disp "COND σx
+Disp "/e-OUT,  0-IN
+Pause 
+ClrHome
+Disp "CHARGE DENSITIES
+Disp "Z=Q/L,  σx
+Disp "=Q/A
+Pause 
+Goto 2
+Lbl EP
+ClrHome
+Disp "deltaX
+Disp "V=W/Q=U/Q
+Disp "U=.5VQ
+Disp "deltaX
+Pause 
+Disp "V=­S E.ds=K S dQ/r=­E.s
+Disp "point  V=KQ/r  U=KQQ/r²
+Disp "sphere  V=KQ/r,r≥R
+Disp "V=(KQ/2)[3-r²/R²],r<R)
+Disp "ring  KQ/√(a²+X²)
+Disp "disk  V=2πKσx
+Disp "[√(X²+a²)-X]
+Disp "Line  (KQ/L)*
+Disp "*ln([L+√(L²+d²)/d])
+Pause 
+Goto 2
+Lbl CP
+Disp "C=Q/V,  C=(Kappa)eA/D
+Disp "1/Cs=1/C1+1/C2
+Disp "Cp=C1+C2
+Disp "Devices
+Disp "U=.5QV=Q²/2C=(CV²)/2
+Disp "C=(eA)/d,C=R/K
+Disp "C=L/(2Kln(b/a))
+Disp "C=ab/(K(a-b))
+Pause 
+ClrHome
+Disp "DiELECTRIC
+Disp "E=V/D
+Disp "C=KbeA/d
+Pause 
+Goto 2
+Lbl CU
+Disp "I=dQ/dt, V=IR,  R=pL/A)
+Disp "P=IV=I²R=V²/R
+Disp "w=Pt
+Disp "J=I/A=I/area
+Disp "J=σx
+Disp "E,  σx
+Disp "=1/p-conductivity
+Disp "p=po[1+a(T-To)]
+Pause 
+Goto 2
+Lbl RC
+Disp "CHARGING
+Disp "I(t)=I.e^((­t)/RC)=
+Disp "=E/R*e^((­t)/RC))
+Disp "Q(t)=Q.[1-e^((­t)/RC)]
+Disp "DISCHARGING
+Disp "I(t)=I.e^((­t)/RC)
+Disp "Q(t)=ECe^((­t)/RC)
+Disp "VAL-FIN=
+Disp "=(INIT-FIN)*e^(­t/RC)
+Pause 
+Goto 2
+Lbl MG
+ClrHome
+Disp "F=QVBsin(θ)
+Disp "Right Hand - (+)
+Disp "LeFt Hand - (-)
+Disp "E !! F but B perp F
+Disp "E≠E(V) but B=0 If V=0
+Disp "E does worK tO MO]ove Q
+Disp "B does no worK since F perp S
+Disp "B cannOt cHanGe KE OF partCL
+Pause 
+ClrHome
+Disp "B=T"
+Disp "F=BIL        F=ILBsin(θ)
+Disp "dF=IdSBsin(θ)
+Disp "F is const on closed loop B=0
+Disp "FIELD RULES
+Disp "B=M.I/2πD - wire
+Disp "B=M.I/R - LOOP OF wire
+Disp "B=(M.NI)/L -solenoid
+Pause 
+Goto NE
+Lbl MT
+ClrHome
+Disp "Fc=Mv²/R=QvB     Mv/R=QB
+Disp "VELOCITY SELECTOR
+Disp "v=E/B
+Disp "W=v/R     W=QB/M
+Disp "T=2πr/v=2π/W
+Disp "APPLICATIONS
+Disp "F=QE+QvBsin(θ)  -  LORENTZ FORCE
+Pause 
+Goto NE
+Lbl MO
+ClrHome
+Disp "F=QvBsin(θ)     F= S IdLBsin(θ)"
+Disp "Bs=M.nI      S B . dL=M.I"
+Disp "o= S B . dA
+Disp "E=­do/dt=­LdI/dt
+Disp "U=.5LI²
+Disp "T=M.Bsin(θ)    M.=IA    r=Mv/QB
+Disp "dB=K(Idsrsin(θ))/R
+Disp "B=M.I/2πa
+Disp "F/L=M. I1 I2/(2πa) 
+ClrHome
+Disp "Id=edL/dt
+Disp "E=­BLv      L=no/I
+Disp "M.=4π*^(­7)
+Disp "K=10^(­7)
+Pause 
+Goto NE
+Lbl 3
+Stop
