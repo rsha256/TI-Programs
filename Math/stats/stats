@@ -5,7 +5,7 @@ Lbl A
 Menu("AP STATS","FORMULAS",1,"TESTS",2,"INTERVALS",4,"QUIT",3)
 Lbl 1
 ClrHome
-Menu("GRAPH TEMPLATES","DEFINITIONS",D,"LINEAR MOTION",LM,"CIRCULAR MOTION",CM,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
+Menu("FORMULAS","GRAPHS",G,"DEFINITIONS",D,"NEXT",NT,"QUIT",3)
 Lbl NT
 Menu("MECHANICS II","PREVIOUS",PS,"W.E.P.",WE,"MOMENTUM",MM,"NEXT",NZ,"QUIT",3)
 Lbl NZ
@@ -98,91 +98,6 @@ Disp "Type II: Fail to reject the H0 when it’s actually false
 Pause 
 Goto 1
 
-Lbl LM
-ClrHome
-Disp "V=deltaX/deltaY
-Disp "t
-Disp "V=dX/dt
-Disp "a=V/t=dV/dt
-Pause 
-Disp "when a is constant
-Disp "df=Vb+at
-Disp "V
-Disp "deltaX=Vbt+.5at²
-Disp "df²=Vb²+2adeltaX
-Disp "V
-Pause 
-ClrHome
-Disp "2dim MOTION
-Disp "R=Vb²sin(2θ)/G
-Disp "R=Vb²2cos(θ)sin(θ)/G
-Pause 
-ClrHome
-Disp "MOVING REFERENCE FRAME
-Disp "V=V'+u,u-REF FRAME
-Pause 
-Goto 1
-Lbl CM
-Disp "a=V²/R - inward
-Disp "a=dv/dt - tangent point
-Disp "F=MV²/R
-Disp "vMIN=√(GR)=√(Mu*RG)
-Disp "Mu*Fn=Mus*(MV²/R)=MG
-Pause 
-Disp "V=2πr/T=2πdf         T=1df
-Disp "/
-Disp "r
-Disp "a=V²/R=4π²df²=4π²R/T^3
-Disp "R
-Pause 
-Goto 1
-Lbl NP
-ClrHome
-Disp "1.  i net ia
-Disp "2.  Σx=MA
-Disp "F
-Disp "3.  action - reaction
-Disp "Incline plane
-Disp "F!!=MGsin(θ),F!-=MGcos(θ)
-Disp "a=Gsin(θ) w/O FRICTION
-Disp "F=Mu*Fn
-Pause 
-ClrHome
-Disp "Cased banKed tracK
-Disp "V=√(Gtan(θ)R)
-Disp "Ncos(θ)=MG
-Disp "Nsin(θ)=MV²/R
-Pause 
-Goto 1
-Lbl PM
-ClrHome
-Disp "H=L(F-cos(θ))
-Disp "CONICAL PENDULUM
-Disp "X:Tsin(θ)=MV²/R
-Disp "Y:Tcos(θ)=MG
-Disp "tan(θ=V²/R
-Disp "T=2π√(Lcos(θ)/G)
-Disp "Tp=2π√(L/P)
-Pause 
-Goto 1
-Lbl GR
-Disp "F=(­GM2M1)/ R²
-Disp "sMaLL G = GM/R²
-Disp "U=(­GM1M2)/ R = ­GM SdM/R
-Disp "obJs near planet
-Disp "Et=.5Mv²-(GM1M2)/R
-Pause 
-ClrHome
-Disp "Sattelites
-Disp "v=√((GM)/R)
-Disp "Et=­(GM1M2)/2R
-Disp "Vesc=√(2GM/R)
-Disp "Mass distr.
-Disp "r1 v1=r2 v2
-Disp "G=6.7­11
-Disp "M'=(Mr)/R
-Pause 
-Goto 1
 Lbl WE
 ClrHome
 Disp "Work,Energy,Power
@@ -207,8 +122,6 @@ Goto NT
 Lbl 2
 ClrHome
 Menu("TESTS","TEST CONCLUSION",TC,"CONDITIONS",C,"BACK",A,"QUIT",3)
-Lbl C
-Menu("TESTS","Z",Z1,"Z-PROPORTION",ZP,"T",T1,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
 
 Lbl TC
 Disp "Since a p-value of [p-value] is [greater/less] than an alpha of [significance level]...
@@ -216,6 +129,9 @@ Disp "we fail to reject the null hypothesis that [context]
 Disp "OR
 Disp "we have significant evidence to reject the null hypothesis [context] in favor of the alternative [context] 
 Goto 3
+
+Lbl C
+Menu("TESTS","Z",Z1,"Z-PROPORTION",ZP,"T",T1,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
 
 
 Lbl 4
