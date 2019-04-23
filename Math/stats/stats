@@ -6,20 +6,21 @@ Menu("AP STATS","FORMULAS",1,"TESTS",2,"INTERVALS",4,"QUIT",3)
 Lbl 1
 ClrHome
 Menu("FORMULAS","GRAPHS",G,"DEFINITIONS",D,"NEXT",NT,"QUIT",3)
-Lbl NT
-Menu("MECHANICS II","PREVIOUS",PS,"W.E.P.",WE,"MOMENTUM",MM,"NEXT",NZ,"QUIT",3)
-Lbl NZ
-Menu("MECHANICS III","PREVIOUS",NT,"CALORIM.+GASES",C1,"Cv and Cp",CC,"ENGINE-FRIDGE",EA,"BACK",BA,"QUIT",3)
-Lbl EA
+
+Lbl G
 ClrHome
-Disp "ENGINE(CW) PROBLEM STEPS
-Disp "1.STATE TABLE(P,V,T)
-Disp "2.PROCESSES TABLE(W,Q,U)
-Disp "3.TOTALS(W,Q,U)
-Disp "4.QHOT=SUM OF POS QS
-Disp "QCOLD=SUM OF NEG QS
-Disp "5.E=W/QHOT
-Disp "EcarnOt=((TH)-Tc)/(TH)
+Disp "Shape: Skewed, Mound, Uniform, Bimodal
+Disp "
+Disp "Outliers: Any EXTREME observations
+Disp "IQR=Q3-Q1
+Disp "Upper-fence: Q3 + 1.5IQR
+Disp "Lower-fence: Q1 - 1.5IQR
+Disp "
+Center: Typical representative value
+Median aka Typical is where 50% of all values in the data should be less and 50% should be greater 
+Spread: Amount of variability
+Range is a show of variability: max - min
+Disp "Median = (n+1)/2
 Pause 
 ClrHome
 Disp "FRIDGE(CCW)
@@ -29,63 +30,7 @@ Disp "QH=SUM OF ALL POSITIVE Q
 
 
 Pause 
-Goto NZ
-
-Lbl CC
-ClrHome
-Disp "GAMMA=(Cp/Cv)
-Pause 
-Goto NZ
-Lbl C1
-ClrHome
-Disp "PV=nRT   °C=(5/9)(F-32)
-Disp "PV=NKT   °F=(9/5)C+32
-Disp "Q=Mc deltaX   dL=(a)L(dT)
-Disp "T     WITHIN PHASES
-Disp "Q=+-ML    BTW PHASES
-Disp "W=S PdV,U=Q-W
-Disp "------------------------------
-Disp "isOP        S-INTEGRAL
-Disp "W=P(V2-V1),                     Q=nC   deltaX
-Disp "p
-Disp "T
-Disp "U=nC    deltaX,V1/T1=V2/T2
-Disp "T
-Disp "v
-Pause 
-ClrHome
-Disp "isOV
-Disp "W=0
-Disp "Q=nC    deltaX
-Disp "T
-Disp "p
-Disp "U=nC    deltaX,P1/T1=P2/T2
-Disp "T
-Disp "v
-Disp "------------------------------
-Disp "isOT
-Disp "W=nRTln(V2/V1)
-Disp "Q=nRTln(V2/V1)
-Disp "U=0,P1V1=P2V2
-Pause 
-ClrHome
-Disp "ADIABOLIC
-Disp "W=­nC    deltaX,Q=0
-Disp "T
-Disp "v
-
-Disp "U=nC    deltaX
-Disp "T
-Disp "v
-Disp "T1V1^(G-1)=T2V2^(G-1)
-Disp "P1(V1^G)=P2(V2^G)
-Disp "C   =C     R
-Disp "p
-Disp "v
-Pause 
-
-
-Goto NZ
+Goto 1
 
 Lbl PS
 Goto 1
@@ -97,26 +42,6 @@ Disp "Type I: Reject the H0 when it’s actually true
 Disp "Type II: Fail to reject the H0 when it’s actually false
 Pause 
 Goto 1
-
-Lbl WE
-ClrHome
-Disp "Work,Energy,Power
-Disp "PEs=.5KX²=U    U=MGH
-Disp "KE=.5MV²
-Pause 
-ClrHome
-Disp "net W=KE
-Pause 
-ClrHome
-Disp "ELASTIC COLLISION
-Disp "V1-V2=V2-V1"
-Pause 
-Goto NT
-Lbl MM
-ClrHome
-Disp "V1-V2=V2-V1
-Pause 
-Goto NT
 
 
 Lbl 2
