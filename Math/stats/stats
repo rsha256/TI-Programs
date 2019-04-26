@@ -16,19 +16,14 @@ Disp "IQR=Q3-Q1
 Disp "Upper-fence: Q3 + 1.5IQR
 Disp "Lower-fence: Q1 - 1.5IQR
 Disp "
-Center: Typical representative value
-Median aka Typical is where 50% of all values in the data should be less and 50% should be greater 
-Spread: Amount of variability
-Range is a show of variability: max - min
-Disp "Median = (n+1)/2
 Pause 
 ClrHome
-Disp "FRIDGE(CCW)
-Disp "QH=SUM OF ALL NEGATIVE Q
-Disp "K=­(QC)/W
-Disp "QH=SUM OF ALL POSITIVE Q
-
-
+Disp "Center: Typical representative value
+Disp "Median = (n+1)/2
+Disp "Median aka Typical is where 50% of all values in the data should be less and 50% should be greater 
+Disp "
+Disp "Spread: Amount of variability
+Disp "Range is a show of variability: max - min
 Pause 
 Goto 1
 
