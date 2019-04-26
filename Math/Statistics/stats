@@ -33,7 +33,7 @@ Lbl BA
 Goto A
 Lbl D
 ClrHome
-Disp "Type I: Reject the H0 when it’s actually true
+Disp "Type I: Reject the Ho when it’s actually true
 Disp "Type II: Fail to reject the H0 when it’s actually false
 Pause 
 Goto 1

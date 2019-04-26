@@ -1,2 +1,0 @@
-Disp "TEST"
-Disp "teet"+toString(B)+"to"+toString(A)+"of: "+toString(X)

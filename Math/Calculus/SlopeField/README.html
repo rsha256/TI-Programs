@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> <html> <body>
+
+<center><h1>Slope Field v1.0</h1>
+<h2>Programmed by Morgan Robertson</h2></center>
+
+<br><br><br><br>
+
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!">
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+">
+</form>
+
+<h2>Controls</h2>
+<b>2nd --</b> Select menu option<br>
+<b>Enter --</b> Select menu option, proceed to next screen<br>
+<b>Alpha --</b> Return to title screen from options menu<br>
+<b>Arrows --</b> Move cursor<br>
+
+<br><br>
+
+<h2>Using Slope Field</h2>
+Slope Field allows you to draw slope fields on the graph screen of your TI-83/84+.  After you select "Go!" from the main menu, enter a derivative in terms of x and y when prompted to do so, then press Enter.  After the slope field is drawn on the screen, press Enter and use the arrow keys to move a cursor around the screen.  When you are finished viewing the slope field, press Enter again to return to the main menu.  From the options menu, you can choose the number of slopes that will be drawn on the screen, adjust the window, and turn the axes on and off.<br>
+
+<p><img src="screens/slopefield1.gif" alt="Slope Field"/><img src="screens/slopefield2.gif" alt="Slope Field"/>
+
+<br><br>
+
+<h2>Credits</h2>
+Programmed by Morgan Robertson<br>
+Special thanks to Mrs. Smirl for the inspiration and for being such a great calculus teacher<br>
+
+<br><br>
+
+<h2>Contact Info</h2>
+You can email me at robertson.md7@gmail.com if you have any questions or comments.  You can also visit my website at <a href="http://robertson.heliohost.org">http://robertson.heliohost.org</a> to download programs for the TI-83/84+ and the Nintendo DS.  Do you like my programs?  Then why not make a donation?  Your donations keep me motivated and will enable me to purchase hardware and software development tools so that I can continue to create useful and entertaining programs for the both the TI-83/84+ and the Nintendo DS. Click on the "Donate" link below to make a donation via credit card or your PayPal account. Thank you for your support!
+
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!">
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+">
+</form>
+
+<br><br>
+
+<h2>License</h2>
+Slope Field is free software and may be distributed freely via the internet.  This program is distrubuted without a warranty; by downloading this file, you agree that I am not responsible for any damage that occurs to your computer, calculator, or any other property as a result of using this program.<br>
+
+<br><br>
+<h2>Update/Release History</h2>
+<b>v1.0</b><br>
+Released at <a href="http://robertson.heliohost.org">http://robertson.heliohost.org</a> on 2/29/08 and at <a href="http://ticalc.org">http://ticalc.org</a>.
+
+</body></html>
