@@ -5,7 +5,7 @@ Lbl A
 Menu("AP STATS","FORMULAS",1,"TESTS",2,"INTERVALS",4,"QUIT",3)
 Lbl 1
 ClrHome
-Menu("FORMULAS","GRAPHS",G,"DEFINITIONS",D,"NEXT",NT,"QUIT",3)
+Menu("FORMULAS","GRAPHS",G,"cdf Probabilities",CD,"DEFINITIONS",D,"BACK",A,"QUIT",3)
 
 Lbl G
 ClrHome
@@ -26,9 +26,22 @@ Disp "Range is a show of variability: max - min
 Pause 
 Goto 1
 
+Lbl CD
+ClrHome
+Disp "Exactly: P(X = x) = binompdf(n , p, x)
+Disp "At Most: P(X ≤ x) = binomcdf(n , p, x)
+Disp "At least: P(X ≥ x) = 1 - binomcdf(n , p, x-1)
+Disp "More than: P(X > x) = 1 - binomcdf(n , p, x)
+Disp "Less/Fewer Than: P(X < x) = binomcdf(n , p, x-1)
+Pause
+Disp "Normal Approximation of Binomial:
+Disp "for np ≥ 10 and n(1-p) ≥ 10
+Disp "the X is approx N(np, √(np(1-p)))
+Goto 1
+
 Lbl D
 ClrHome
-Menu("DEFINITIONS","SAMPLING",SP,"EXPERIMETAL DESIGN",ED,"HYPOTHESES",H,"RESIDUALS",RS,"PROBABILITY",PB,"NEXT",NT,"QUIT",3)
+Menu("DEFINITIONS","SAMPLING",SP,"EXPERIMETAL DESIGN",ED,"HYPOTHESES",H,"RESIDUALS",RS,"PROBABILITY",PB,"BACK",1,"QUIT",3)
 
 Lbl SP
 ClrHome
@@ -50,19 +63,48 @@ Pause
 Disp "Multistage sampling. With multistage sampling, we select a sample by using combinations of different sampling methods.
 Disp "Example: Stage 1, use cluster sampling to choose clusters from a population. Then, in Stage 2, we use simple random sampling to select a subset of subjects from each chosen cluster for the final sample.
 Pause  
-Disp "Systematic random sampling. With systematic random sampling, we create a list of every member of the population. From the
-list, we randomly select the first sample element from the first k subjects on the population list. Thereafter, we select
-every kth subject on the list.
-Example: Select every 5th person on a list of the population. 
+Disp "Systematic random sampling. With systematic random sampling, we create a list of every member of the population. From the list, we randomly select the first sample element from the first k subjects on the population list. Thereafter, we select every kth subject on the list.
+Disp "Example: Select every 5th person on a list of the population. 
 Pause  
-Goto 1
+Goto D
+
+Lbl ED
+ClrHome
+Disp "Experimental Unit or Subject: The individuals on which the experiment is done. If they are people then we call them subjects
+Pause  
+Disp "Factor: The explanatory variables in the study
+Disp "Level: The degree or value of each factor.
+Pause  
+Disp "Treatment: The condition applied to the subjects. When there is one factor, the treatments and the levels are the same.
+Pause  
+Disp "Control. Control refers to steps taken to reduce the effects of other variables (i.e., variables other than the independent variable and the dependent variable). These variables are called lurking variables.
+Disp "Control involves making the experiment as similar as possible for subjects in each treatment condition. Three control strategies are control groups, placebos, and blinding.
+Disp "Control group. A control group is a group that receives no treatment
+Pause  
+Disp "Placebo. A fake or dummy treatment.
+Disp "Blinding: Not telling subjects whether they receive the placebo or the treatment
+Pause  
+Disp "Double blinding: neither the researchers or the subjects know who gets the treatment or placebo
+Disp "Randomization. Randomization refers to the practice of using chance methods (random number tables, flipping a coin, etc.) to assign subjects to treatments.
+Pause  
+Disp "Replication. Replication refers to the practice of assigning each treatment to many experimental subjects.
+Disp "Bias: when a method systematically favors one outcome over another.
+Pause  
+Disp "Types of design:
+Disp "Completely randomized design With this design, subjects are randomly assigned to treatments.
+Pause 
+Disp "Randomized block design, the experimenter divides subjects into subgroups called blocks. Then, subjects within each block are randomly assigned to treatment conditions. Because this design reduces variability and potential confounding, it produces a better estimate of treatment effects.
+Pause 
+Disp "Matched pairs design is a special case of the randomized block design. It is used when the experiment has only two treatment conditions; and subjects can be grouped into pairs, based on some blocking variable. Then, within each pair, subjects are randomly assigned to different treatments. In some cases you give two treatments to the same experimental unit. That unit is their own matched pair 
+Pause  
+Goto D
 
 Lbl H
 ClrHome
 Disp "Type I: Reject the Ho when it’s actually true
-Disp "Type II: Fail to reject the H0 when it’s actually false
+Disp "Type II: Fail to reject the Ho when it’s actually false
 Pause 
-Goto 1
+Goto D
 
 Lbl RS
 ClrHome
@@ -70,15 +112,14 @@ Disp "Residuals = actual - predicted
 Disp "e = y - y_hat
 Disp "Both the sum of the residuals and the mean of the residuals are equal to zero, or Σ e = 0 and e = 0
 Pause 
-Goto 1
+Goto D
 
 Lbl PB
 ClrHome
 Disp "Bayes Theorem: P(A | B) = P(B | A) * P(A) / P(B)
 Disp "Normality: 68-95-99.7 
-
 Pause 
-Goto 1
+Goto D
 
 
 Lbl 2
@@ -86,18 +127,56 @@ ClrHome
 Menu("TESTS","TEST CONCLUSION",TC,"CONDITIONS",C,"BACK",A,"QUIT",3)
 
 Lbl TC
-Disp "Since a p-value of [p-value] is [greater/less] than an alpha of [significance level]...
+Disp "Since a p-value of [p-value] is [greater/less] than an alpha of [significance level]
 Disp "we fail to reject the null hypothesis that [context]
 Disp "OR
 Disp "we have significant evidence to reject the null hypothesis [context] in favor of the alternative [context] 
-Goto 3
+Pause  
+Goto 2
 
 Lbl C
-Menu("TESTS","Z",Z1,"Z-PROPORTION",ZP,"T",T1,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
+Menu("TESTS","1/2-S Z Test for Mean",Z1,"Z-PROPORTION",ZP,"T",T1,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
 
+Lbl Z1
+Disp "Random: [Given/Proceed with caution]
+Disp "
+Disp "Independence: N ≥ 10n
+Disp "
+Disp "Normality:
+Disp "Given (sampling distrb. is approx. normally distributed) OR
+Disp "Approximate normality of sampling distribution (n ≥ 30 / CLT)
+Pause  
+Goto C
+
+Lbl ZP
+Menu("Z-PROPORTIONs","1-SAMPLE",1s,"2-SAMPLE",2s,"BACK",C,"QUIT",3)
+
+Lbl 1s
+Disp "Random: [Given/Proceed with caution]
+Disp "
+Disp "Independence: N ≥ 10n
+Disp "
+Disp "Normality:
+Disp "Given (sampling distrb. is approx. normally distributed) OR
+Disp "Approximate normality of sampling distribution (np̂ ≥ 10 and n(1-p̂) ≥ 10)
+Pause  
+Goto ZP
+
+Lbl 2s
+Disp "Random: [Given/Proceed with caution]
+Disp "
+Disp "Independence: 
+Disp "Read context to determine if both samples are independent
+Disp "N ≥ 10n
+Pause  
+Disp "Normality:
+Disp "Given (sampling distrb. is approx. normally distributed) OR
+Disp "Approximate normality of sampling distributions (n1p̂1 ≥ 5, n1(1-p̂1) ≥ 5, n2p̂2 ≥ 5, and n2(1-p̂2) ≥ 5)
+Pause  
+Goto ZP
 
 Lbl 4
-Menu("INTERVALS","1-SAMPLE",1I,"2-SAMPLE",2I,"LINEAR REGRESSION",RI,"BACK",A,"QUIT",3)
+Menu("INTERVAL CONCLUSIONS","1-SAMPLE",1I,"2-SAMPLE",2I,"LINEAR REGRESSION",RI,"BACK",A,"QUIT",3)
 
 Lbl 1I
 Disp "We are [significance level]% confident that the true [mean/proportion] [difference (if paired-t)] of [context] is between [lower bound] and [upper bound]
