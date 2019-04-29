@@ -129,9 +129,7 @@ Disp "tan(θ)=Y/X
 Disp "distance traveled
 Disp "d=√(X²+Y²)=R²cos(θ)²+
 Disp "+R²sin(θ)²
-
 Disp "!I!=!J!=!K!=1
-
 Disp "ABsin(θ)=!A!!B!sin(θ)(I,J,K)
 Disp "A.B=!A!!B!cos(θ)(I,J,K)
 Pause 
@@ -139,35 +137,34 @@ Goto 1
 
 Lbl LM
 ClrHome
-Disp "V=deltaX/deltaY
-Disp "t
-Disp "V=dX/dt
-Disp "a=V/t=dV/dt
-Pause 
+Disp "V=X/Y (average)
+Disp "V=dX/dt (instant.)
+Disp "a=V/t (instant.)
+Disp "=dV/dt (average)
 Disp "when a is constant
-Disp "df=Vb+at
-Disp "V
-Disp "deltaX=Vbt+.5at²
-Disp "df²=Vb²+2adeltaX
-Disp "V
+Disp "Vf=Vi+at
+Disp "X=Xi+Vit+.5at²
+Disp "Vf²=Vi²+2aX
+Disp "X = t(Vf+Vi)/2
 Pause 
 ClrHome
-Disp "2dim MOTION
-Disp "R=Vb²sin(2θ)/G
-Disp "R=Vb²2cos(θ)sin(θ)/G
-Pause 
-ClrHome
-Disp "MOVING REFERENCE FRAME
-Disp "V=V'+u,u-REF FRAME
+Disp "PROJECTILE MOTION
+Disp "Ax = 0, Ay = -g
+Disp "Vx = x/t, constant velocity
+Disp "UAM in y-direction
 Pause 
 Goto 1
 Lbl CM
-Disp "a=V²/R - inward
+Disp "Ω = dθ/t, α=dΩ/dt
+Disp "a=V²/R = RΩ² - inward
 Disp "a=dv/dt - tangent point
+Disp "Tangential: s = rθ
+Disp "v=rΩ, a=rα
 Disp "F=MV²/R
 Disp "vMIN=√(GR)=√(Mu*RG)
 Disp "Mu*Fn=Mus*(MV²/R)=MG
 Pause 
+ClrHome
 Disp "V=2πr/T=2πdf         T=1df
 Disp "/
 Disp "r
@@ -177,20 +174,19 @@ Pause
 Goto 1
 Lbl NP
 ClrHome
-Disp "1.  i net ia
-Disp "2.  Σx=MA
-Disp "F
-Disp "3.  action - reaction
+Disp "1. Inertia
+Disp "2. ΣF=ma
+Disp "3. Force is same on two objects
 Disp "Incline plane
 Disp "F!!=MGsin(θ),F!-=MGcos(θ)
 Disp "a=Gsin(θ) w/O FRICTION
-Disp "F=Mu*Fn
+Disp "Friction=µFn
 Pause 
 ClrHome
 Disp "Cased banKed tracK
 Disp "V=√(Gtan(θ)R)
-Disp "Ncos(θ)=MG
-Disp "Nsin(θ)=MV²/R
+Disp "Fncos(θ)=MG
+Disp "Fnsin(θ)=MV²/R
 Pause 
 Goto 1
 Lbl PM
@@ -234,15 +230,11 @@ Disp "F=-KX - restoring Force
 Disp "PEs=.5KX²=U    U=MGH
 Disp "KE=.5MV²
 Pause 
-ClrHome
-Disp "net W=KE
-Disp "P=dW/dt=FV=FX/t
-Disp "[PE+KE]b=[PE+KEdf
-Disp "]
-Disp "U=­ S FXdy=.5KX²=MGH
-Disp "Fsin(θ)=­du/dsin(θ)
-Disp "F=dP/dt
-Disp "I= S Fdt=P
+Disp "mEi = mEf (no applied/friction)
+Disp "Wf = mE (no applied)
+Disp "Wnet = KE (all)
+Disp "Power = dW/dt = Fvcos(θ)
+Disp "xcm = Σmx/Σm
 Pause 
 ClrHome
 Disp "ELASTIC COLLISION
@@ -252,7 +244,7 @@ Goto NT
 Lbl MM
 ClrHome
 Disp "p=MV
-Disp "F=p/t
+Disp "F=p/t
 Disp "I= S Fdt
 Disp "MV=Ft
 Disp "[MV1+MV2]b=[MV1+MV2]a"
