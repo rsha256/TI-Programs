@@ -48,55 +48,55 @@ ClrHome
 Disp "Bad:
 Disp "Voluntary sample: sample made up of people who decide for themselves to be in the survey 
 Disp "Convenience sample: made up of people who are easy to reach 
-Pause  
+Pause 
 Disp "Good:
 Disp "Simple random sampling. Simple random sampling refers to a method in which all possible samples of n objects are equally likely to occur.
 Disp" Example: assign a number 1-100 to all members of a population of size 100. One number is selected at a time from a list of random digits or using a random number generator. The first 10 selected without repeats are the sample.
-Pause  
+Pause 
 Disp "Stratified sampling. With stratified sampling, the population is divided into groups, based on some characteristic. Then, within each group, a SRS is taken. In stratified sampling, the groups are called strata.
 Disp "Example: For a national survey we divide the population into groups or strata, based on geography - north, east, south, and west. Then, within each stratum, we might randomly select survey respondents.
-Pause  
+Pause 
 Disp "Cluster sampling. With cluster sampling, every member of the population is assigned to one, and only one, group. Each group is called a cluster. A sample of clusters is chosen using a SRS. Only individuals within sampled clusters are surveyed.
 Disp "Example: Randomly choose high schools in the country and only survey people in those schools.
 Disp "Difference between cluster sampling and stratified sampling. With stratified sampling, the sample includes subjects from each stratum. With cluster sampling the sample includes subjects only from sampled clusters.
-Pause  
+Pause 
 Disp "Multistage sampling. With multistage sampling, we select a sample by using combinations of different sampling methods.
 Disp "Example: Stage 1, use cluster sampling to choose clusters from a population. Then, in Stage 2, we use simple random sampling to select a subset of subjects from each chosen cluster for the final sample.
-Pause  
+Pause 
 Disp "Systematic random sampling. With systematic random sampling, we create a list of every member of the population. From the list, we randomly select the first sample element from the first k subjects on the population list. Thereafter, we select every kth subject on the list.
 Disp "Example: Select every 5th person on a list of the population. 
-Pause  
+Pause 
 Goto D
 
 Lbl ED
 ClrHome
 Disp "Experimental Unit or Subject: The individuals on which the experiment is done. If they are people then we call them subjects
-Pause  
+Pause 
 Disp "Factor: The explanatory variables in the study
 Disp "Level: The degree or value of each factor.
-Pause  
+Pause 
 Disp "Treatment: The condition applied to the subjects. When there is one factor, the treatments and the levels are the same.
-Pause  
+Pause 
 Disp "Control. Control refers to steps taken to reduce the effects of other variables (i.e., variables other than the independent variable and the dependent variable). These variables are called lurking variables.
 Disp "Control involves making the experiment as similar as possible for subjects in each treatment condition. Three control strategies are control groups, placebos, and blinding.
 Disp "Control group. A control group is a group that receives no treatment
-Pause  
+Pause 
 Disp "Placebo. A fake or dummy treatment.
 Disp "Blinding: Not telling subjects whether they receive the placebo or the treatment
-Pause  
+Pause 
 Disp "Double blinding: neither the researchers or the subjects know who gets the treatment or placebo
 Disp "Randomization. Randomization refers to the practice of using chance methods (random number tables, flipping a coin, etc.) to assign subjects to treatments.
-Pause  
+Pause 
 Disp "Replication. Replication refers to the practice of assigning each treatment to many experimental subjects.
 Disp "Bias: when a method systematically favors one outcome over another.
-Pause  
+Pause 
 Disp "Types of design:
 Disp "Completely randomized design With this design, subjects are randomly assigned to treatments.
 Pause 
 Disp "Randomized block design, the experimenter divides subjects into subgroups called blocks. Then, subjects within each block are randomly assigned to treatment conditions. Because this design reduces variability and potential confounding, it produces a better estimate of treatment effects.
 Pause 
 Disp "Matched pairs design is a special case of the randomized block design. It is used when the experiment has only two treatment conditions; and subjects can be grouped into pairs, based on some blocking variable. Then, within each pair, subjects are randomly assigned to different treatments. In some cases you give two treatments to the same experimental unit. That unit is their own matched pair 
-Pause  
+Pause 
 Goto D
 
 Lbl H
@@ -131,11 +131,11 @@ Disp "Since a p-value of [p-value] is [greater/less] than an alpha of [significa
 Disp "we fail to reject the null hypothesis that [context]
 Disp "OR
 Disp "we have significant evidence to reject the null hypothesis [context] in favor of the alternative [context] 
-Pause  
+Pause 
 Goto 2
 
 Lbl C
-Menu("TESTS","1/2-S Z Test for Mean",Z1,"Z-PROPORTION",ZP,"T",T1,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
+Menu("TESTS","1/2-S Z/T Test for Mean",Z1,"Z-PROPORTION",ZP,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
 
 Lbl Z1
 Disp "Random: [Given/Proceed with caution]
@@ -145,7 +145,7 @@ Disp "
 Disp "Normality:
 Disp "Given (sampling distrb. is approx. normally distributed) OR
 Disp "Approximate normality of sampling distribution (n ≥ 30 / CLT)
-Pause  
+Pause 
 Goto C
 
 Lbl ZP
@@ -159,7 +159,7 @@ Disp "
 Disp "Normality:
 Disp "Given (sampling distrb. is approx. normally distributed) OR
 Disp "Approximate normality of sampling distribution (np̂ ≥ 10 and n(1-p̂) ≥ 10)
-Pause  
+Pause 
 Goto ZP
 
 Lbl 2s
@@ -168,12 +168,26 @@ Disp "
 Disp "Independence: 
 Disp "Read context to determine if both samples are independent
 Disp "N ≥ 10n
-Pause  
+Pause 
 Disp "Normality:
 Disp "Given (sampling distrb. is approx. normally distributed) OR
 Disp "Approximate normality of sampling distributions (n1p̂1 ≥ 5, n1(1-p̂1) ≥ 5, n2p̂2 ≥ 5, and n2(1-p̂2) ≥ 5)
-Pause  
+Pause 
 Goto ZP
+
+Lbl C1
+Disp "Random: [Given/Proceed with caution]
+Disp "
+Disp "All expected values are greater than 5
+Pause 
+Goto C
+
+Lbl LR
+Disp "Linear relationship from y to x (scatterplot)
+Disp "Same standard deviation (random residual plot, equal on both sides)
+Disp "Normally distributed shape (histogram)
+Pause 
+Goto C
 
 Lbl 4
 Menu("INTERVAL CONCLUSIONS","1-SAMPLE",1I,"2-SAMPLE",2I,"LINEAR REGRESSION",RI,"BACK",A,"QUIT",3)
