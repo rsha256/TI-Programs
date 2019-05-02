@@ -111,6 +111,8 @@ ClrHome
 Disp "Residuals = actual - predicted
 Disp "e = y - y_hat
 Disp "Both the sum of the residuals and the mean of the residuals are equal to zero, or Σe = 0 and e = 0
+Disp "x% of the LSRL is explained by the r value of [value] 
+Disp "x% of the LSRL is explained by the r² value of [value] 
 Pause 
 Goto D
 Lbl PB
@@ -142,8 +144,8 @@ Disp "Approximate normality of sampling distribution (n ≥ 30 / CLT)
 Pause 
 Goto C
 Lbl ZP
-Menu("Z-PROPORTIONs","1-SAMPLE",1s,"2-SAMPLE",2s,"BACK",C,"QUIT",3)
-Lbl 1s
+Menu("Z-PROPORTIONs","1-SAMPLE",1S,"2-SAMPLE",2S,"BACK",C,"QUIT",3)
+Lbl 1S
 Disp "Random: [Given/Proceed with caution]
 Disp "
 Disp "Independence: N ≥ 10n
@@ -153,7 +155,7 @@ Disp "Given (sampling distrb. is approx. normally distributed) OR
 Disp "Approximate normality of sampling distribution (np^ ≥ 10 and n(1-p^) ≥ 10)
 Pause 
 Goto ZP
-Lbl 2s
+Lbl 2S
 Disp "Random: [Given/Proceed with caution]
 Disp "
 Disp "Independence: 
