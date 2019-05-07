@@ -35,16 +35,14 @@ Disp "At Most: P(X ≤ x) = binomcdf(n, p, x)
 Disp "At least: P(X ≥ x) = 1 - binomcdf(n, p, x-1)
 Disp "More than: P(X > x) = 1 - binomcdf(n, p, x)
 Disp "Less/Fewer Than: P(X < x) = binomcdf(n, p, x-1)
-Pause
+Pause 
 Disp "Normal ~ of Binomial:
 Disp "for np ≥ 10 and n(1-p) ≥ 10
 Disp "X is ~ N(np, √(np(1-p)))
+Pause 
 Goto 1
-
 Lbl D
-ClrHome
 Menu("DEFINITIONS","SAMPLING",SP,"EXPERIMETAL DESIGN",ED,"HYPOTHESES",H,"RESIDUALS",RS,"PROBABILITY",PB,"BACK",1,"QUIT",3)
-
 Lbl SP
 ClrHome
 Disp "Bad:
@@ -134,6 +132,7 @@ Goto 2
 Lbl C
 Menu("TESTS","1/2-S Z/T Test for Mean",Z1,"Z-PROPORTION",ZP,"Chi-Square",C1,"Linear Reg. T",LR,"BACK",A,"QUIT",3)
 Lbl Z1
+ClrHome
 Disp "Random: [Given/Proceed with caution]
 Disp "
 Disp "Independence: N ≥ 10n
@@ -146,6 +145,7 @@ Goto C
 Lbl ZP
 Menu("Z-PROPORTIONs","1-SAMPLE",1S,"2-SAMPLE",2S,"BACK",C,"QUIT",3)
 Lbl 1S
+ClrHome
 Disp "Random: [Given/Proceed with caution]
 Disp "
 Disp "Independence: N ≥ 10n
@@ -156,6 +156,7 @@ Disp "Approximate normality of sampling distribution (np^ ≥ 10 and n(1-p^) ≥
 Pause 
 Goto ZP
 Lbl 2S
+ClrHome
 Disp "Random: [Given/Proceed with caution]
 Disp "
 Disp "Independence: 
@@ -168,12 +169,14 @@ Disp "Approximate normality of sampling distributions (n1p^1 ≥ 5, n1(1-p^1) �
 Pause 
 Goto ZP
 Lbl C1
+ClrHome
 Disp "Random: [Given/Proceed with caution]
 Disp "
 Disp "All expected values are greater than 5
 Pause 
 Goto C
 Lbl LR
+ClrHome
 Disp "Linear relationship from y to x (scatterplot)
 Disp "Same standard deviation (random residual plot, equal on both sides)
 Disp "Normally distributed shape (histogram)
@@ -182,12 +185,15 @@ Goto C
 Lbl 4
 Menu("INTERVAL CONCLUSIONS","1-SAMPLE",1I,"2-SAMPLE",2I,"LINEAR REGRESSION",RI,"BACK",A,"QUIT",3)
 Lbl 1I
+ClrHome
 Disp "We are [significance level]% confident that the true [mean/proportion] [difference (if paired-t)] of [context] is between [lower bound] and [upper bound]
 Goto 4
 Lbl 2I
+ClrHome
 Disp "We are [significance level]% confident that the true [mean/proportion] of [context 1] is between [lower bound] and [upper bound] [higher/lower] than the [mean/proportion] of [context 2] 
 Goto 4
 Lbl RI
+ClrHome
 Disp "We are [significance level]% confident that the true slope of the regression line [context] is between [lower bound] and [upper bound]
 Disp "Formula: b +/- t*SEb
 Goto 4
