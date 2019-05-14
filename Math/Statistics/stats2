@@ -79,6 +79,9 @@ ClrHome
 Disp "Cluster Sample:","Divide population into","cluster and take SRS","","Cluster v. Straified:","Strata uses every group made","cluster randomly selects a few"
 Pause 
 ClrHome
+Disp "Systematic Sample:","Select every nth subject","","Multistage sampling","select a sample by","using combinations of","different sampling methods"
+Pause 
+ClrHome
 Disp "Biased Samples:","Voluntary response sample","Convenience sample"
 Pause 
 Goto D1
@@ -100,7 +103,10 @@ Lbl DE
 Disp "Experiments use treatments","to show causation","","Design:","Control for lurking vars","Randomly Assign treatments","Replicate by using","many experimental units"
 Pause 
 ClrHome
-Disp "Control for lurking","variables with:","","Double blind experiment","Placebo control group","Blocking","Matched Pairs"
+Disp "Control for lurking","variables with:","","Double blind experiment","Placebo control group","Blocking"
+Pause 
+ClrHome
+Disp "Matched Pairs","pair subjects based","on similarities","only 2 treatments"
 Pause 
 Goto D1
 Lbl DF
@@ -142,7 +148,7 @@ Pause
 Goto E1
 Lbl ED
 ClrHome
-Disp "Mutually Exclusive:","Cannot occur together","P(A and B)=0","","Independent:","No association","P(A|B)=P(A)","and P(B|A)=P(B)"
+Disp "Mutually Exclusive:","Cannot occur together","P(A and B)=0","","Independent:","No association","P(A|B)=P(A)","or P(B|A)=P(B)"
 Pause 
 ClrHome
 Disp "If events are mutually","exclusive, they cannot","be independent"
@@ -150,7 +156,7 @@ Pause
 Goto E1
 Lbl EE
 ClrHome
-Disp "Mutually Exclusive:","P(A or B)=P(A)+P(B)","","General:","P(A or B)=","P(A)+P(B)-P(A and B)"
+Disp "Mutually Exclusive:","P(A or B)=P(A)+P(B)","","General:","P(A or B)=","P(A)+P(B)-P(A and B)","Independent:","P(A and B)=P(A)*P(B)"
 Pause 
 Goto E1
 Lbl EF

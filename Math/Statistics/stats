@@ -39,33 +39,7 @@ Pause
 Disp "Normal ~ of Binomial:
 Disp "for np ≥ 10 and n(1-p) ≥ 10
 Disp "X is ~ N(np, √(np(1-p)))
-Pause 
-Goto 1
-Lbl D
-Menu("DEFINITIONS","SAMPLING",SP,"EXPERIMETAL DESIGN",ED,"HYPOTHESES",H,"RESIDUALS",RS,"PROBABILITY",PB,"BACK",1,"QUIT",3)
-Lbl SP
-ClrHome
-Disp "Bad:
-Disp "Voluntary sample: sample made up of people who decide for themselves to be in the survey 
-Disp "Convenience sample: made up of people who are easy to reach 
-Pause 
-Disp "Good:
-Disp "Simple random sampling. Simple random sampling refers to a method in which all possible samples of n objects are equally likely to occur.
-Disp "Example: assign a number 1-100 to all members of a population of size 100. One number is selected at a time from a list of random digits or using a random number generator. The first 10 selected without repeats are the sample.
-Pause 
-Disp "Stratified sampling. With stratified sampling, the population is divided into groups, based on some characteristic. Then, within each group, a SRS is taken. In stratified sampling, the groups are called strata.
-Disp "Example: For a national survey we divide the population into groups or strata, based on geography - north, east, south, and west. Then, within each stratum, we might randomly select survey respondents.
-Pause 
-Disp "Cluster sampling. With cluster sampling, every member of the population is assigned to one, and only one, group. Each group is called a cluster. A sample of clusters is chosen using a SRS. Only individuals within sampled clusters are surveyed.
-Disp "Example: Randomly choose high schools in the country and only survey people in those schools.
-Disp "Difference between cluster sampling and stratified sampling. With stratified sampling, the sample includes subjects from each stratum. With cluster sampling the sample includes subjects only from sampled clusters.
-Pause 
-Disp "Multistage sampling. With multistage sampling, we select a sample by using combinations of different sampling methods.
-Disp "Example: Stage 1, use cluster sampling to choose clusters from a population. Then, in Stage 2, we use simple random sampling to select a subset of subjects from each chosen cluster for the final sample.
-Pause 
-Disp "Systematic random sampling. With systematic random sampling, we create a list of every member of the population. From the list, we randomly select the first sample element from the first k subjects on the population list. Thereafter, we select every kth subject on the list.
-Disp "Example: Select every 5th person on a list of the population. 
-Pause 
+
 Goto D
 
 Lbl ED
