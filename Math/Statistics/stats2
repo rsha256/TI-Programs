@@ -21,16 +21,19 @@ ClrHome
 Disp "IQR=Q₃-Q₁"," ","Outliers:","Q3+1.5*IQR","Q1-1.5*IQR"," ","5 Number Summary:","MIN,Q₁,Med,Q₃,MAX"
 Pause 
 ClrHome
-Disp "Use Mean and SD for symmetric unimodal distributions","Use Median and IQR for skewed graphs","mean always goes towards tail"
+Disp "Use Mean and SD for","symmetric unimodal","distributions","","Use Median and IQR for","skewed graphs as","mean always goes towards","tail"
 Pause 
 
 Goto B1
 Lbl BC:ClrHome
-Disp "Z-Score=(X-)/Sx","N(,σ)","68-95-99.7"," ","Normal Probability Plot","Straight = Normal"
+Disp "Z-Score=(-µ)/Sx","N(,σ)","68-95-99.7"," ","Normal Probability Plot","Straight = Normal"
 Pause 
 Goto B1
 Lbl BD:ClrHome
 Disp "Add/Subtract","Add to Center/Location","No Change Shape/Spread"," ","Multiply/Divide","Multiply Center/Location","/Spread","No Change Shape"
+Pause 
+ClrHome
+Disp "σ_w =","(k*σ_1 + c*σ_2)","= √((k * σ_1²)+(c * σ_2²))"
 Pause 
 Goto B1
 
@@ -60,7 +63,10 @@ Lbl CD:ClrHome
 Disp "Residual=","observedY-predictedY","y-yHAT"," ","Residual Plot:","random=good linear fit","nonlinear or curved=","poor linear fit"
 Pause 
 ClrHome
-Disp "S=SD of residuals"," ","Average size of prediction","errors when using LSRL"
+Disp "ΣResid = 0"
+Pause 
+ClrHome
+Disp "S=SD of residuals"," ","Average size of prediction","errors when using LSRL","","Computer Output:","gives σ_ or σ_b"
 Pause 
 Goto C1
 
@@ -76,7 +82,7 @@ Lbl DB
 Disp "Simple Random Sample:","Every possible sample","of a given size","has the same chance","of being chosen","","Stratified Random Sample:","Divide population into","strata and take SRS"
 Pause 
 ClrHome
-Disp "Cluster Sample:","Divide population into","cluster and take SRS","","Cluster v. Straified:","Strata uses every group made","cluster randomly selects a few"
+Disp "Cluster Sample:","Divide population into","clusters and take SRS","","Cluster v. Straified:","Strata uses every group","made, cluster only","randomly selects a few"
 Pause 
 ClrHome
 Disp "Systematic Sample:","Select every nth subject","","Multistage sampling","select a sample by","using combinations of","different sampling methods"
@@ -407,14 +413,21 @@ Pause
 Goto I1
 Lbl IB
 ClrHome
-Disp "Significance tests asses","data against Ho and Ha","","Ha≠Ho is 2 sided","Ha>Ho or Ha<Ho is 1 sided","","Alpha = significance level","Test Stat =","(Stat-Parameter)/SD Stat" 
+Disp "Significance tests assess","data against Ho and Ha","","Ha≠Ho is 2 sided","Ha>Ho or Ha<Ho is 1 sided","","Alpha = significance level","Test Stat =","(Stat-Parameter)/SD_stat"
 Pause 
 ClrHome
 Disp "P-value is the probability","assuming Ho is true","that a value as or more","extreme will occur in","the direction of Ha","","If P-value < Alpha","the data is significant","at that level"
 Pause 
 ClrHome
-Disp "P-value<Alpha reject Ho","P-value>Alpha","fail to reject Ho","","Increasing the sample size","or the significance level","increases the power B"
+Disp "P-value<Alpha reject Ho","","P-value>Alpha","fail to reject Ho","","Increasing the sample size","or the significance level","which is alpha,","increases the power 1-B"
 Pause 
+ClrHome
+Disp "Type I:","Reject Ho when actually","true","","Type II:","FailToReject Ho when","actually false"
+Pause 
+ClrHome
+Disp "Power:","correctly reject Ho","Power=1-Beta","Beta=P(Type II err)"
+Pause 
+ClrHome
 Goto I1
 Lbl IC
 ClrHome
