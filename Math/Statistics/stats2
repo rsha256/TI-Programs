@@ -213,7 +213,7 @@ ClrHome
 Disp "Binomial Setting:","Binary - outcomes are","success or failure","Independent - one trial","doesn't affect other trial","Number - number of","trials n is fixed","Success - probability p","of success is set"
 Pause 
 ClrHome
-Disp "Binomial coefficient:","n nCr k = n!/(k!(n-k)!)","","Formula:","P(X=k)=","(n nCr k)(p^k)(1-p)^(n-k)","","CDF - P(X=k)","PDF - P(X≤k)"
+Disp "Binomial coefficient:","n nCr k = n!/(k!(n-k)!)","","Formula:","P(X=k)=","(n nCr k)(p^k)(1-p)^(n-k)","","PDF - P(X=k)","CDF - P(X≤k)"
 Pause 
 ClrHome
 Disp "Mean = np SD = √(np(1-p))","","Sample binomial dist. can","model population if 10n≤N","","When np≥10 and n(1-p)≥10","dist is approx normal","with above Mean and SD"
