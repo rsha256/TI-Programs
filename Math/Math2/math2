@@ -1,0 +1,112 @@
+ClrHome
+Menu("FIND...","DISTANCE",1,"HERONS",2,"SHOELACE THM",3,"FORMULAS",4,"SLOPE",5,"Sum of Consecutive Ints",6,"Polar Coords",7,"height -> area eq tri",8,"periodic cycles",9,"<QUIT>",Q)
+Lbl 1
+Disp "2D -> L=1 and 3D -> L=2"
+Prompt L
+If L=1
+Then
+Input "X1=",X
+Input "Y1=",Y
+Input "X2=",S
+Input "Y2=",T
+√((T-Y)^2+(S-X)^2)→W
+Disp "DISTANCE BETWEEN POINTS=",W
+Disp "OR"
+Disp "THE SQUARE ROOT OF",(T-Y)^2+(S-X)^2
+Stop
+Else
+Prompt A 
+Prompt B 
+Prompt C 
+Prompt D 
+Prompt E 
+Prompt F 
+√((A-D)^2+(B-E)^2+(C-F)^2)→E
+Disp "Distance= ",E
+Disp "OR"
+Disp "THE SQUARE ROOT OF",(A-D)^2+(B-E)^2+(C-F)^2
+Stop
+Lbl 2
+Input "S1=",A
+Input "S2=",B
+Input "S3=",C
+((A+B+C)/2)→N
+√((N(N-A)(N-B)(N-C)))→M
+Disp "Area: ",M
+Stop
+Lbl 3
+Input "X1=",X
+Input "Y1=",Y
+Input "X2=",S
+Input "Y2=",T
+Input "X3=",Z
+Input "Y3=",U
+(0.5)(abs((X)(T)+(S)(U)+(Z)(Y)-(S)(Y)-(Z)(T)-(X)(U)))→A
+Disp "Area: ",A
+Stop
+Lbl 4
+Disp "Arc Length(S) = r*θ → θ=S/r"
+Disp "Sector Area = 0.5*r^2*θ"
+Disp "Sum of cubes: a+b=(a+b)(a²-ab+b²)"
+Disp "Diff of cubes: a-b=(a-b)(a²+ab+b²)"
+Disp "Volume of ...: "
+Disp "Surface Area of Cone: Pi*R^2+Pi*R*S"
+Disp "S = slant height = √(H²+R²)"
+Disp "Arithmetic Sequences: An=A1+d(n-1)"
+Disp "Geometric Sequences: An=A1*(r^(n-1))"
+Disp "Law of cosines: a²=b²+c²-2bc*cosA"
+Disp "L of prime numbers: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97"
+Stop
+Lbl 5
+Prompt A 
+Prompt B 
+Prompt C 
+Prompt D 
+Disp "SLOPE= ",(D-B)/(C-A)
+Stop
+Lbl 6
+Disp "Sum of"
+Input S
+.5*S(S+1)→A
+Disp "Sum of 1 to ",S,"= "
+Disp A
+Stop
+Lbl 7
+Disp "P->R=1; R->P=2"
+Prompt P
+If P=1
+Then
+Disp "RADIUS= "
+Input R
+Disp "THETA= "
+Input T
+R*cos(T)→C
+R*sin(T)→S
+Disp "X= ",C
+Disp "Y= ",S
+Stop
+Else
+Prompt X
+Prompt Y
+√(X^2+Y^2)→R
+tan(Y/X)→T
+Disp "R= ",R
+Disp "THETA= ",T
+Stop
+Lbl 8
+Disp "Height"
+Input H
+(H*√(3)/3)→S
+((S^2)(√(3))/4)→A
+Disp "Side= ",S
+Disp "Area= ",A
+Stop
+Lbl 9
+Prompt X 
+Prompt A 
+Prompt B 
+Prompt C 
+Disp "CYCLES= ",A+((X-A)-((X-A)/((B-A)/C)*((B-A)/C)))
+Stop
+Lbl Q
+Stop
