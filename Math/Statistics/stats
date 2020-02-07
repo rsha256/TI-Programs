@@ -1,9 +1,9 @@
 :"AP STATS"
+:"By: Rahul S."
 Lbl A1:ClrHome
 Menu(" STATISTICS: ","Distributions",B1,"Regressions",C1,"Experimental Design",D1,"Probability",E1,"Random Variables",F1,"Next",A2,"Quit",ZZ)
 Lbl A2:ClrHome
 Menu(" STATISTICS: ","Sampling Distributions",G1,"Confidence Intervals",H1,"Significance Tests",I1,"χ² Tests",J1,"Data Inferences",K1,"Back",A1,"Quit",ZZ)
-
 
 Lbl B1:ClrHome
 Menu("Distributions","Basics",BA,"Summary Statistics",BB,"Normal Distribution",BC,"Outliers",ZY,"Linear Transformations",BD,"Main",A1
@@ -122,7 +122,6 @@ ClrHome
 Disp "Without experiment","evidence of causation","requires strong assoc","seen in many studies"
 Pause 
 Goto D1
-
 
 Lbl E1:ClrHome
 Menu("Probability","Basics",EA,"Simulations",EB,"Probability Models",EC,"Independent/Mutual Exc.",ED,"Addition Rules",EE,"Multiplication Rules",EF,"Conditional Probability",EG,"Main",A1)
@@ -332,7 +331,7 @@ ClrHome
 Disp "A confidence interval uses","sample data to estimate","a population parameter","","Interval Forms:","Estimate +- MoE","Stat +- Critical Value *","SD of Statistic"
 Pause 
 ClrHome
-Disp "Confidence Level C is","the success rate of","the method that produces","the confidence interval","","za ta"
+Disp "Confidence Level C is","the success rate of","the method that produces","the confidence interval","","ZAP TAX"
 Pause 
 Goto H1
 Lbl HC
@@ -383,8 +382,6 @@ ClrHome
 Disp "If conditions are met","shape is normal with","Mean= mean1-mean2","SD=√((σ1²/n1)+(σ2²/n2))","","Formula:","(1-2)+-","t*√((S1²/n1)+(S2²/n2))","Use calculator for df"
 Pause 
 Goto H1
-
-
 
 Lbl I1:ClrHome
 Menu("Significance Tests","Basics",IB,"1 Proportion",IC,"2 Proportions",ID,"1 Mean",IE,"2 Means",IF,"4 Step Process",IG,"Calculator Commands",HA,"Error Diagram",IA,"Main",A2)
@@ -658,6 +655,4 @@ ClrHome
 Disp "New data stored in L₆"
 Pause 
 Goto ZZ
-
-
 Lbl ZZ

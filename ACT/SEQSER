@@ -1,0 +1,19 @@
+ClrHome
+Disp "Arithmetic Sequence:"
+Disp "a_n","= a1 + d(n-1)",""
+Disp "Geometric Sequences"
+Disp "t_n","= t1 * r^(n-1)"
+Pause 
+ClrHome
+Disp "Arithmetic Sum:"
+Disp "Sn","= (n/2)(a1+an)",""
+Disp "Finite Geometric Sum:"
+Disp "Sn,i=1,n,ai*r^(i-1)","= a1((1-r^n)/(1-r))"
+Pause 
+ClrHome
+Disp "Infinite Geo Sum (|r|<1):"
+Disp "S,i=0,inf,ai*r^i","= a1/(1-r)"
+Pause 
+ClrHome
+Disp "Joint/Conditional prob:","P(event1ANDevent2)","=P(event1) * P(event2)"
+Disp "","Mutually exclusive prob:","P(event1ORevent2)","=P(event1)+P(event)"
