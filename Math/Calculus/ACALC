@@ -1,14 +1,16 @@
 " More study resources at: https://t.me/studyresource 
-" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, RC, MG, MT, MO, NE, CC, C1, WE
+" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, RC, MG, MT
 FnOff 
 ClrHome
 Lbl 1
 ClrHome
 Menu("LIMITS+DERIV","DEF of CONTINUITY",CM,"DIFF RULES",DR,"THEOREMS",TH,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
 Lbl NT
+ClrHome
 Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN",MM,"PFD",HM,"AREA FORMULAS",RT,"VOLUUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
 Lbl NZ
-Menu("SERIES+PARAM","PREVIOUS",NT,"BACK",BA,"QUIT",3)
+ClrHome
+Menu("SERIES+PARAM","PREVIOUS",NT,"1D PARAMETRICS",CC,"2D PARAMETRICS",NE,"POLAR",MO,"SERIES",C1,"BACK",BA,"QUIT",3)
 Lbl PS
 Goto 1
 Lbl CM
@@ -31,11 +33,26 @@ Disp "d/dx[f(x)*g(x)]
 Disp "=f'(x)g(x)+g'(x)f(x)
 Disp "
 Disp "d/dx[f(x)/g(x)]
-Disp "=gf'-fg'/g²
+Disp "=(gf'-fg')/g²
 Pause 
 ClrHome
 Disp "d/dx[x^n]
 Disp "=nx^(n-1)
+Disp "
+Disp "INV: f(x)=y
+Disp "f^(-1)(y)=x
+Disp "(f^(-1))'(x)=
+Disp "=1/(f'(f^(-1)(x)))
+Disp "=1/f'(y)
+Pause 
+ClrHome
+Disp "INV DIFF EXAMPLE:
+Disp "f(x)=x²
+Disp "f'(x)=2x
+Disp "f'(y)=2y
+Disp "(f^(-1))'(x)=1/(2y)
+Disp "FLIP: x=y² -> y=√x
+Disp "(f^(-1))'(x)=1/(2√x)
 Pause 
 Goto 1
 Lbl TH
@@ -52,6 +69,7 @@ Disp "at a critical point
 Pause 
 ClrHome
 Disp "Intermediate Val Thm:
+Disp "
 Disp "If f is cont. on [a,b] 
 Disp "4 any c: f(a) ≤ c ≤ f(b) 
 Disp "then ≥ one # in [a,b] 
@@ -59,6 +77,7 @@ Disp "such that f(x)=c
 Pause 
 ClrHome
 Disp "Mean Val Thm:
+Disp "
 Disp "If f is cont on [a,b]
 Disp "and diff on (a,b)
 Disp "then there exists an c 
@@ -67,10 +86,11 @@ Disp "f'(c)=(f(b)-f(a))/(b-a)
 Pause 
 ClrHome
 Disp "Rolle's Thm:
+Disp "
 Disp "If f is cont on [a,b]
 Disp "and diff on (a,b)
 Disp "and f(a)=f(b)
-Disp "≥ one c ε(a,b)
+Disp "≥ one c in (a,b)
 Disp "where f'(c)=0
 Pause 
 Goto 1
@@ -84,23 +104,56 @@ Disp "∫_a^b f(x) dx =
 Disp "F(b) - F(a)
 Pause 
 Goto 1
-Lbl NP
+
+Lbl CC
 ClrHome
-Disp "1. Inertia
-Disp "2. ΣF=ma
-Disp "3. Force is same on two objects
-Disp "Incline plane
-Disp "F!!=MGsin(θ),F!-=MGcos(θ)
-Disp "a=Gsin(θ) w/O FRICTION
-Disp "Friction=µFn
+Disp "1D PARAMETRICS
+Disp "particle is speeding up 
+Disp "or speed is increasing if:
+Disp "v(t) & a(t) have same sign
+Disp "
+Disp "particle is slowing down 
+Disp "or speed is decreasing if:
+Disp "v(t) & a(t) have diff signs
 Pause 
 ClrHome
-Disp "Cased banKed tracK
-Disp "V=√(Gtan(θ)R)
-Disp "Fncos(θ)=MG
-Disp "Fnsin(θ)=MV²/R
+Disp "ARC LENGTH/DISTANCE: 
+Disp "L=∫_a^b √(1+(dy/dx)²) dx
+Disp "
 Pause 
-Goto 1
+Goto NZ
+Lbl NE
+ClrHome
+Disp "2D PARAMETRICS
+Disp "distance=∫√(x'(t)²+y'(t)²)dt
+Disp "2nd derivative formula:
+Disp "d²y/dx²=
+Disp "d/dt[y'(t)/x'(t)]/(dx/dt)
+Disp "
+Disp "TANGENT LINES:
+Disp "Horiz: y'(t)=0, x'(t)≠0
+Disp "Vert: x'(t)=0, y'(t)≠0
+
+Pause 
+Goto NZ
+Lbl MO
+ClrHome
+Disp "POLAR:
+Disp "dy/dx
+Disp "=(r'sinθ+rcosθ)/(r'cosθ-rsinθ)
+Disp "
+Disp "L=∫_α^β √(r²+(dr/dθ)²)dθ
+Disp "
+Disp "x=rcos(θ)
+Disp "y=rsin(θ)
+Pause 
+ClrHome
+Disp "Circle: r=a
+Disp "Line: θ=a
+Disp "
+Pause 
+Goto NZ
+
 Lbl PM
 ClrHome
 Disp "H=L(F-cos(θ))
