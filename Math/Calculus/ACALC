@@ -1,5 +1,5 @@
 " More study resources at: https://t.me/studyresource 
-" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, RC, MG, MT
+" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, MG, MT
 FnOff 
 ClrHome
 Lbl 1
@@ -7,7 +7,7 @@ ClrHome
 Menu("LIMITS+DERIV","DEF of CONTINUITY",CM,"DIFF RULES",DR,"THEOREMS",TH,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
 Lbl NT
 ClrHome
-Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN",MM,"PFD",HM,"AREA FORMULAS",RT,"VOLUUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
+Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN SUMS L/R/T/M",MM,"INF RIEMANN SUMS,RC,"PFD",HM,"AREA FORMULAS",RT,"VOLUUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
 Lbl NZ
 ClrHome
 Menu("SERIES+PARAM","PREVIOUS",NT,"1D PARAMETRICS",CC,"2D PARAMETRICS",NE,"POLAR",MO,"SERIES",C1,"BACK",BA,"QUIT",3)
@@ -105,6 +105,26 @@ Disp "F(b) - F(a)
 Pause 
 Goto 1
 
+Lbl MM
+ClrHome
+Disp "p=MV
+Disp "F=p/t
+Disp "I= S Fdt
+Disp "MV=Ft
+Disp "[MV1+MV2]b=[MV1+MV2]a"
+Disp "REL VELOCITY CHANGES SIGN"
+Disp "V1-V2=V2-V1
+Pause 
+Goto NT
+Lbl RC
+ClrHome
+Disp "Given: A=∫_a^b f(x) dx
+Disp "x=(b-a)/n
+Disp "A=
+Disp "lim n->∞ ∑_(i=1)^∞ f(a+ix) x
+Pause 
+Goto NT
+
 Lbl CC
 ClrHome
 Disp "1D PARAMETRICS
@@ -133,9 +153,28 @@ Disp "
 Disp "TANGENT LINES:
 Disp "Horiz: y'(t)=0, x'(t)≠0
 Disp "Vert: x'(t)=0, y'(t)≠0
-
 Pause 
 Goto NZ
+Disp "SERIES
+Disp "TAYLOR:
+Disp "∑_{n=0}^∞ f^(n)(c)/n! (x-c)^n
+Disp "^MACLAURIN WHEN c=0
+Disp "
+Disp "Alternating Err: 
+Disp "Err=|S-S_n|=a_{n+1}
+Pause 
+ClrHome
+Disp "LAGRANGE ERR BOUND:
+Disp "|R_n|≤M|x-c|^(n+1)/(n+1)!
+Disp "R_n -> remainder (error)
+Disp "x -> given x-val 
+Disp "c -> center of polynomial
+Disp "n -> degree of polynomial
+Disp "M->Max between a and z 
+Disp "of f^(n+1)(x)
+Pause 
+Goto NZ
+
 Lbl MO
 ClrHome
 Disp "POLAR:
@@ -183,17 +222,7 @@ Disp "G=6.7­11
 Disp "M'=(Mr)/R
 Pause 
 Goto 1
-Lbl MM
-ClrHome
-Disp "p=MV
-Disp "F=p/t
-Disp "I= S Fdt
-Disp "MV=Ft
-Disp "[MV1+MV2]b=[MV1+MV2]a"
-Disp "REL VELOCITY CHANGES SIGN"
-Disp "V1-V2=V2-V1
-Pause 
-Goto NT
+
 Lbl HM
 ClrHome
 Disp "X=Asin(wt)
