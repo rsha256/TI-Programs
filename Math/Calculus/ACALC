@@ -1,174 +1,87 @@
+" More study resources at: https://t.me/studyresource 
+" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, RC, MG, MT, MO, NE, CC, C1, WE
 FnOff 
 ClrHome
-Lbl A
-Menu("AP CALC BC","FORMULAS",1,"CALCULATOR",2,"QUIT",3)
 Lbl 1
 ClrHome
-Menu("DIFFERENTIATION","RULES",DR,"THEOREMS",TH,"CIRCULAR MOTION",CM,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
+Menu("LIMITS+DERIV","DEF of CONTINUITY",CM,"DIFF RULES",DR,"THEOREMS",TH,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
 Lbl NT
-Menu("INTEGRATION/SERIES","PREVIOUS",PS,"W.E.P.",WE,"MOMENTUM",MM,"HARM. MOTION",HM,"Rotations",RT,"DEFORM.FLUIDS",DF,"NEXT",NZ,"QUIT",3)
+Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN",MM,"PFD",HM,"AREA FORMULAS",RT,"VOLUUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
 Lbl NZ
-Menu("PARAMETRICS","PREVIOUS",NT,"CALORIM.+GASES",C1,"Cv and Cp",CC,"ENGINE-FRIDGE",EA,"BACK",BA,"QUIT",3)
-Lbl EA
-ClrHome
-Disp "ENGINE(CW) PROBLEM STEPS
-Disp "1.STATE TABLE(P,V,T)
-Disp "2.PROCESSES TABLE(W,Q,U)
-Disp "3.TOTALS(W,Q,U)
-Disp "4.QHOT=SUM OF POS QS
-Disp "QCOLD=SUM OF NEG QS
-Disp "5.E=W/QHOT
-Disp "EcarnOt=((TH)-Tc)/(TH)
-Pause 
-ClrHome
-Disp "FRIDGE(CCW)
-Disp "QH=SUM OF ALL NEGATIVE Q
-Disp "K=­(QC)/W
-Disp "QH=SUM OF ALL POSITIVE Q
-
-
-Pause 
-Goto NZ
-
-Lbl CC
-ClrHome
-Disp "C
-Disp "v
-Disp "MONO:(3/2)R,DI:(5/2)R
-Disp "POLY:(7/2)R
-Disp "Cp
-Disp "MONO:(5/2)R,DI:(7/2)R
-Disp "POLY:(9/2)R
-Disp "GAMMA=(Cp/Cv)
-Pause 
-Goto NZ
-Lbl C1
-ClrHome
-Disp "PV=nRT   °C=(5/9)(F-32)
-Disp "PV=NKT   °F=(9/5)C+32
-Disp "Q=Mc deltaX   dL=(a)L(dT)
-Disp "T     WITHIN PHASES
-Disp "Q=+-ML    BTW PHASES
-Disp "W=S PdV,U=Q-W
-Disp "------------------------------
-Disp "isOP        S-INTEGRAL
-Disp "W=P(V2-V1),                     Q=nC   deltaX
-Disp "p
-Disp "T
-Disp "U=nC    deltaX,V1/T1=V2/T2
-Disp "T
-Disp "v
-Pause 
-ClrHome
-Disp "isOV
-Disp "W=0
-Disp "Q=nC    deltaX
-Disp "T
-Disp "p
-Disp "U=nC    deltaX,P1/T1=P2/T2
-Disp "T
-Disp "v
-Disp "------------------------------
-Disp "isOT
-Disp "W=nRTln(V2/V1)
-Disp "Q=nRTln(V2/V1)
-Disp "U=0,P1V1=P2V2
-Pause 
-ClrHome
-Disp "ADIABOLIC
-Disp "W=­nC    deltaX,Q=0
-Disp "T
-Disp "v
-
-Disp "U=nC    deltaX
-Disp "T
-Disp "v
-Disp "T1V1^(G-1)=T2V2^(G-1)
-Disp "P1(V1^G)=P2(V2^G)
-Disp "C   =C     R
-Disp "p
-Disp "v
-Pause 
-
-
-Goto NZ
-
-Lbl DF
-ClrHome
-Disp "MOD=STRESS/STRAIN
-Disp "DEFOR.      STRE.       STRA.     MOD
-Disp "TENSILE     F/A         ^L/L      Y(Pa)
-Disp "BULK                  ^p          ^V/V      B=1/K
-Disp "SHEAR             F/A          X/H           S
-
-Pause 
-ClrHome
-Disp "FLUIDS  P-PRESSURE p-DENSITY
-
-Disp "Z-VELOCITY
-Disp "P1+.5p(Z1)²+pG(Y1)=
-Disp "P2+.5p(Z2)²+pG(Y2)
-Disp "MASS RATE OF THE FLOW
-Disp "dM/dt=p1A1Z1=p2A2Z2
-Disp "VOLUME RATE OF FLOW
-Disp "dV/dt=A1Z1=A2Z2
-Disp "F1/A1=F2/A2
-Pause 
-
-Goto A
+Menu("SERIES+PARAM","PREVIOUS",NT,"BACK",BA,"QUIT",3)
 Lbl PS
 Goto 1
-Lbl BA
-Goto A
+Lbl CM
+Disp "DEFINITION OF CONTINUITY:
+Disp "
+Disp "lim x->a f(x)=f(a)
+Disp "
+Disp "f(a) exists
+Disp "
+Disp "lim x->a- f(x)
+Disp "=lim x->a+ f(x)
+Pause 
+Goto 1
 Lbl DR
+ClrHome
+Disp "d/dx[x^x]
+Disp "=x^x(ln|x| + 1)
+Disp "
+Disp "d/dx[f(x)*g(x)]
+Disp "=f'(x)g(x)+g'(x)f(x)
+Disp "
+Disp "d/dx[f(x)/g(x)]
+Disp "=gf'-fg'/g²
+Pause 
 ClrHome
 Disp "d/dx[x^n]
 Disp "=nx^(n-1)
-Disp "d/dx[x^x]
-Disp "=x^x(ln|x| + 1)
-Disp "d/dx[f(x)*g(x)]
-Disp "=f'(x)g(x)+g'(x)f(x)
-Disp "d/dx[f(x)/g(x)]
-Disp "=gf'-fg'/g²
-Disp "A.B=!A!!B!cos(θ)(I,J,K)
 Pause 
 Goto 1
-
 Lbl TH
 ClrHome
-Disp "EVT:
-Disp "TODO: Descriptions
-Disp "IVT:
-Disp "MVT:
-Disp "Rolle's:
-Disp "FTC1
-Disp "TODO: Descriptions
-Disp "FTC2
-Disp "TODO: Descriptions
+Disp "Extreme Val Thm:
+Disp "If f(x) is continuous on
+Disp "[a,b] then f has both a 
+Disp "max and min on [a,b] 
+Disp "
+Disp "Sidenote: If f has an
+Disp "extrema on (a,b) then 
+Disp "the extremum occurs 
+Disp "at a critical point
 Pause 
 ClrHome
-Disp "PROJECTILE MOTION
-Disp "Ax = 0, Ay = -g
-Disp "Vx = x/t, constant velocity
-Disp "UAM in y-direction
+Disp "Intermediate Val Thm:
+Disp "If f is cont. on [a,b] 
+Disp "4 any c: f(a) ≤ c ≤ f(b) 
+Disp "then ≥ one # in [a,b] 
+Disp "such that f(x)=c
+Pause 
+ClrHome
+Disp "Mean Val Thm:
+Disp "If f is cont on [a,b]
+Disp "and diff on (a,b)
+Disp "then there exists an c 
+Disp "in (a,b) such that:
+Disp "f'(c)=(f(b)-f(a))/(b-a)
+Pause 
+ClrHome
+Disp "Rolle's Thm:
+Disp "If f is cont on [a,b]
+Disp "and diff on (a,b)
+Disp "and f(a)=f(b)
+Disp "≥ one c ε(a,b)
+Disp "where f'(c)=0
 Pause 
 Goto 1
-Lbl CM
-Disp "Ω = dθ/t, α=dΩ/dt
-Disp "a=V²/R = RΩ² - inward
-Disp "a=dv/dt - tangent point
-Disp "Tangential: s = rθ
-Disp "v=rΩ, a=rα
-Disp "F=MV²/R
-Disp "vMIN=√(GR)=√(Mu*RG)
-Disp "Mu*Fn=Mus*(MV²/R)=MG
-Pause 
-ClrHome
-Disp "V=2πr/T=2πdf         T=1df
-Disp "/
-Disp "r
-Disp "a=V²/R=4π²df²=4π²R/T^3
-Disp "R
+Lbl DF
+Disp "FTC1:
+Disp "d/dx[∫_a^b f(t) dt]= 
+Disp "b' * f(b) - a' * f(a)
+Disp "
+Disp "FTC2
+Disp "∫_a^b f(x) dx = 
+Disp "F(b) - F(a)
 Pause 
 Goto 1
 Lbl NP
@@ -217,29 +130,6 @@ Disp "G=6.7­11
 Disp "M'=(Mr)/R
 Pause 
 Goto 1
-Lbl WE
-ClrHome
-Disp "Work,Energy,Power
-Disp "W=FX=FXcos(θ)   F=­du/dX
-Disp "If A!-B => A.B=0
-Disp "If A!!B => A.B=AB
-Disp "I.J=I.K=J.K=0
-Disp "W= S FdX
-Disp "F=-KX - restoring Force
-Disp "PEs=.5KX²=U    U=MGH
-Disp "KE=.5MV²
-Pause 
-Disp "mEi = mEf (no applied/friction)
-Disp "Wf = mE (no applied)
-Disp "Wnet = KE (all)
-Disp "Power = dW/dt = Fvcos(θ)
-Disp "xcm = Σmx/Σm
-Pause 
-ClrHome
-Disp "ELASTIC COLLISION
-Disp "V1-V2=V2-V1"
-Pause 
-Goto NT
 Lbl MM
 ClrHome
 Disp "p=MV
@@ -315,196 +205,5 @@ Disp "I(HCYL/Z)=MR²
 Disp "I(SCYL/Z)=(1/2)MR²
 Pause 
 Goto NT
-Lbl 2
-ClrHome
-Menu("ELECTRICITY I","ELECTRIC FIELDS",EF,"FLUX LINES",FL,"ELEC POTENTIAL",EP,"Capacitors",CP,"Current ELectr",CU,"RC circuits",RC,"NEXT",NE,"QUIT",3)
-Lbl NE
-Menu("ELECTRICITY II","PREVIOUS",2,"MAGNETISM",MG,"MaGn. TRAJECTORY",MT,"MaGn. MOMents",MO,"COORDINATES",TT,"BacK",BB,"QUIT",3)
-Lbl TT
-ClrHome
-Disp "CARTISIAN X,Y,Z
-Disp "LENGTH:
-Disp "dX,dY,dZ->LINES
-Disp "AREAS:
-Disp "dXdY,dXdZ,dYdZ->PLANES
-Disp "VOLUME:
-Disp "dXdYdZ->CUBE
-Pause 
-ClrHome
-Disp "CYLIDRICAL  r,θ,Z
-Disp "LENGTH
-Disp "dr,dZ->L,rdθ->ARC,CIRCLE
-Disp "AREAS:    rdrdθ-PIE
-Disp "rdθdZ-HOL.CYL,drdZ-PLANE
-Disp "VOLUME
-Disp "rdrdθdZ-SOL.CYL
-Pause 
-ClrHome
-Disp "SPHERICAL   r,θ,o
-Disp "LENGTH
-Disp "dr-LINE,rdθ,rsin(θ)do-ARC,CIRCLE
-Disp "AREAS
-Disp "rdrdθ-PIE,r²sin(θ)dθdo-HOL.SPH
-Disp "rsin(θ)drdo-CONE
-Disp "r²sin(θ)drdθdo-SOLID SPHERE
-Pause 
-Goto NE
-Lbl BB
-Goto A
-Lbl EF
-Disp "F=(K !Q1! !Q2!)/R²
-Disp "K=9*10^9 = 1/(4πE)
-Disp "E=8.85*10^­12"
-Disp "!e!=!p!=1.6*10^­19 c
-Disp "F = QE = Ma => a = QE/M
-Disp "x = vt,y = .5at² = -(eEt²)/2M
-Disp "Mp = 1.67*10^­27KG
-Disp "1u = 1.66*10^­27KG = 931 MeV/c²
-Disp "E=F/Q=KQ/R²=V/D
-Pause 
-Goto 2
-Lbl FL
-ClrHome
-Disp "o-FLUX
-Disp "o=EA   E=KSdQ/R²
-Pause 
-Disp "o=EAcos(θ)
-Disp "oc=SE
-Disp ".
-Disp "dA
-Disp "deltaX
-Disp "o=E_i
-Disp ".
-Disp "deltaX
-Disp "A_i
-Pause 
-ClrHome
-Disp "o=Q/e
-Disp "e-EPSILON
-Pause 
-Disp "Sphere  KQ/R²   r>R
-Disp " KQr/R²   r<R
-Disp "SHELL      KQ/R²   r>R, 0 r<R
-Disp "LINE          2KZ/r
-Disp "Z-LAMDA
-Disp "PLANE σx
-Disp "/2e
-Disp "COND σx
-Disp "/e-OUT,  0-IN
-Pause 
-ClrHome
-Disp "CHARGE DENSITIES
-Disp "Z=Q/L,  σx
-Disp "=Q/A
-Pause 
-Goto 2
-Lbl EP
-ClrHome
-Disp "deltaX
-Disp "V=W/Q=U/Q
-Disp "U=.5VQ
-Disp "deltaX
-Pause 
-Disp "V=­S E.ds=K S dQ/r=­E.s
-Disp "point  V=KQ/r  U=KQQ/r²
-Disp "sphere  V=KQ/r,r≥R
-Disp "V=(KQ/2)[3-r²/R²],r<R)
-Disp "ring  KQ/√(a²+X²)
-Disp "disk  V=2πKσx
-Disp "[√(X²+a²)-X]
-Disp "Line  (KQ/L)*
-Disp "*ln([L+√(L²+d²)/d])
-Pause 
-Goto 2
-Lbl CP
-Disp "C=Q/V,  C=(Kappa)eA/D
-Disp "1/Cs=1/C1+1/C2
-Disp "Cp=C1+C2
-Disp "Devices
-Disp "U=.5QV=Q²/2C=(CV²)/2
-Disp "C=(eA)/d,C=R/K
-Disp "C=L/(2Kln(b/a))
-Disp "C=ab/(K(a-b))
-Pause 
-ClrHome
-Disp "DiELECTRIC
-Disp "E=V/D
-Disp "C=KbeA/d
-Pause 
-Goto 2
-Lbl CU
-Disp "I=dQ/dt, V=IR,  R=pL/A)
-Disp "P=IV=I²R=V²/R
-Disp "w=Pt
-Disp "J=I/A=I/area
-Disp "J=σx
-Disp "E,  σx
-Disp "=1/p-conductivity
-Disp "p=po[1+a(T-To)]
-Pause 
-Goto 2
-Lbl RC
-Disp "CHARGING
-Disp "I(t)=I.e^((­t)/RC)=
-Disp "=E/R*e^((­t)/RC))
-Disp "Q(t)=Q.[1-e^((­t)/RC)]
-Disp "DISCHARGING
-Disp "I(t)=I.e^((­t)/RC)
-Disp "Q(t)=ECe^((­t)/RC)
-Disp "VAL-FIN=
-Disp "=(INIT-FIN)*e^(­t/RC)
-Pause 
-Goto 2
-Lbl MG
-ClrHome
-Disp "F=QVBsin(θ)
-Disp "Right Hand - (+)
-Disp "LeFt Hand - (-)
-Disp "E !! F but B perp F
-Disp "E≠E(V) but B=0 If V=0
-Disp "E does worK tO MO]ove Q
-Disp "B does no worK since F perp S
-Disp "B cannOt cHanGe KE OF partCL
-Pause 
-ClrHome
-Disp "B=T"
-Disp "F=BIL        F=ILBsin(θ)
-Disp "dF=IdSBsin(θ)
-Disp "F is const on closed loop B=0
-Disp "FIELD RULES
-Disp "B=M.I/2πD - wire
-Disp "B=M.I/R - LOOP OF wire
-Disp "B=(M.NI)/L -solenoid
-Pause 
-Goto NE
-Lbl MT
-ClrHome
-Disp "Fc=Mv²/R=QvB     Mv/R=QB
-Disp "VELOCITY SELECTOR
-Disp "v=E/B
-Disp "W=v/R     W=QB/M
-Disp "T=2πr/v=2π/W
-Disp "APPLICATIONS
-Disp "F=QE+QvBsin(θ)  -  LORENTZ FORCE
-Pause 
-Goto NE
-Lbl MO
-ClrHome
-Disp "F=QvBsin(θ)     F= S IdLBsin(θ)"
-Disp "Bs=M.nI      S B . dL=M.I"
-Disp "o= S B . dA
-Disp "E=­do/dt=­LdI/dt
-Disp "U=.5LI²
-Disp "T=M.Bsin(θ)    M.=IA    r=Mv/QB
-Disp "dB=K(Idsrsin(θ))/R
-Disp "B=M.I/2πa
-Disp "F/L=M. I1 I2/(2πa) 
-ClrHome
-Disp "Id=edL/dt
-Disp "E=­BLv      L=no/I
-Disp "M.=4π*^(­7)
-Disp "K=10^(­7)
-Pause 
-Goto NE
 Lbl 3
 Stop
