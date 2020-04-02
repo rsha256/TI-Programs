@@ -1,5 +1,5 @@
 " More study resources at: https://t.me/studyresource 
-" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, MG, MT, NP, PM, GR
+" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, MG, MT, NP, PM, GR, BA
 FnOff 
 ClrHome
 Lbl 1
@@ -10,7 +10,7 @@ ClrHome
 Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN SUMS L/R/T/M",MM,"INF RIEMANN SUMS",RC,"PFD",HM,"AREA FORMULAS",RT,"VOLUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
 Lbl NZ
 ClrHome
-Menu("SERIES+PARAM","PREVIOUS",NT,"1D PARAMETRICS",CC,"2D PARAMETRICS",NE,"POLAR",MO,"SERIES",C1,"BACK",BA,"QUIT",3)
+Menu("SERIES+PARAM","PREVIOUS",NT,"1D PARAMETRICS",CC,"2D PARAMETRICS",NE,"POLAR",MO,"SERIES",C1,"QUIT",3)
 Lbl PS
 Goto 1
 Lbl CM
@@ -146,6 +146,30 @@ Disp "ax²+bx+c ->
 Disp "(Ax+B)/(ax²+bx+c)
 Pause 
 Goto NT
+Lbl RT
+ClrHome
+Disp "A_tri=0.5bh
+Disp "
+Disp "EQUIL TRIANGLE:
+Disp "A=√3/4 a²
+Disp "
+Disp "TREAPEZOID:
+Disp "A=b/2(h1+h2)
+Pause 
+Goto NT
+Lbl WE
+ClrHome
+Disp "Around y=k: (y=f(x))
+Disp "V=π∫_a^b (y-k)² dx
+Disp "
+Disp "Around x=h: (x=f(y))
+Disp "V=π∫_c^d [x-h]² dy
+Disp "
+Disp "V=π∫_a^b R²-r² dx
+Disp "
+Disp "SA=2π∫_a^b y√(1+(y')²) dx
+Pause 
+Goto NT
 
 Lbl CC
 ClrHome
@@ -236,41 +260,5 @@ Disp "of f^(n+1)(x)
 Pause 
 Goto NZ
 
-Lbl RT
-ClrHome
-Disp "s=rθ     X->θ
-Disp "v=rw     v->w
-Disp "a=rA     a->A  
-Disp "T=rF     M->I
-Disp "KE=.5Iw²     T=F    P=Tw
-Disp "KE=.5Mv²+.5Iw²
-Pause 
-ClrHome
-Disp "L=rpsin(θ)
-Disp "Σx
-Disp "T=dL/dt    I=Σx
-Disp "Mr²
-Disp "Xc=(ΣxM)/M=(1/M) S rdM
-Pause 
-ClrHome
-Disp "L=Iw
-Disp "TO ROLL
-Disp "v=rw
-Disp "EQUILIBRIUM
-Disp "Σx
-Disp "F=0    Σx
-Disp 28,25,"T=0
-Disp "CROSS PRODUCT
-Disp "C=ABsin(θ)
-Disp "DOT PRODUCT
-Disp "A.B=ABcos(θ)
-Pause 
-ClrHome
-Disp "I(ROD/END)=(1/3)ML²
-Disp "I(ROD/CEN)=(1/12)ML²
-Disp "I(HCYL/Z)=MR²
-Disp "I(SCYL/Z)=(1/2)MR²
-Pause 
-Goto NT
 Lbl 3
 Stop
