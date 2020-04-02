@@ -1,13 +1,13 @@
 " More study resources at: https://t.me/studyresource 
-" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, MG, MT
+" UNUSED LABELS: A, 2, EA, TT, BB, EF, FL, EP, CU, MG, MT, NP, PM, GR
 FnOff 
 ClrHome
 Lbl 1
 ClrHome
-Menu("LIMITS+DERIV","DEF of CONTINUITY",CM,"DIFF RULES",DR,"THEOREMS",TH,"NEWTONIAN PHYS",NP,"PENDULUM",PM,"GRAVITY",GR,"NEXT",NT,"QUIT",3)
+Menu("LIMITS+DERIV","DEF of CONTINUITY",CM,"DIFF RULES",DR,"THEOREMS",TH,"NEXT",NT,"QUIT",3)
 Lbl NT
 ClrHome
-Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN SUMS L/R/T/M",MM,"INF RIEMANN SUMS,RC,"PFD",HM,"AREA FORMULAS",RT,"VOLUUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
+Menu("INTEGRATION","PREVIOUS",PS,"FTC",DF,"RIEMANN SUMS L/R/T/M",MM,"INF RIEMANN SUMS",RC,"PFD",HM,"AREA FORMULAS",RT,"VOLUME FORMULAS",WE,"NEXT",NZ,"QUIT",3)
 Lbl NZ
 ClrHome
 Menu("SERIES+PARAM","PREVIOUS",NT,"1D PARAMETRICS",CC,"2D PARAMETRICS",NE,"POLAR",MO,"SERIES",C1,"BACK",BA,"QUIT",3)
@@ -94,6 +94,7 @@ Disp "≥ one c in (a,b)
 Disp "where f'(c)=0
 Pause 
 Goto 1
+
 Lbl DF
 Disp "FTC1:
 Disp "d/dx[∫_a^b f(t) dt]= 
@@ -103,17 +104,23 @@ Disp "FTC2
 Disp "∫_a^b f(x) dx = 
 Disp "F(b) - F(a)
 Pause 
-Goto 1
-
+Goto NT
 Lbl MM
 ClrHome
-Disp "p=MV
-Disp "F=p/t
-Disp "I= S Fdt
-Disp "MV=Ft
-Disp "[MV1+MV2]b=[MV1+MV2]a"
-Disp "REL VELOCITY CHANGES SIGN"
-Disp "V1-V2=V2-V1
+Disp "LEFT:
+Disp "Σ_(i=0)^(n+1)f(x_i)x
+Disp "
+Disp "RIGHT:
+Disp "Σ_(i=1)^(n)f(x_i)x
+Pause 
+ClrHome
+Disp "TRAPEZOID: A=(R+L)/2
+Disp "(b-a)/(2n) *
+Disp "*[f(a)+2f(x1)+2f(x2)
+Disp "+...+2f(x_{n-1})+f(b)]
+Disp "
+Disp "MIDPOINT: A=
+Disp "(b-a)/n * Σf(x_mid)
 Pause 
 Goto NT
 Lbl RC
@@ -121,7 +128,22 @@ ClrHome
 Disp "Given: A=∫_a^b f(x) dx
 Disp "x=(b-a)/n
 Disp "A=
-Disp "lim n->∞ ∑_(i=1)^∞ f(a+ix) x
+Disp "lim n->inf 
+Disp "Σ_(i=1)^n f(a+ix) x
+Pause 
+Goto NT
+Lbl HM
+ClrHome
+Disp "PARTIAL FRAC DECOMP:
+Disp "FACTOR IN DENOM->PFD TERM:
+Disp "ax+b -> A/(ax+b)
+Disp "
+Disp "(ax+b)^k -> 
+Disp "A_1/(ax+b)+A_2/(ax+b)²+...
+Disp "...+A_k/(ax+b)^k
+Disp "
+Disp "ax²+bx+c -> 
+Disp "(Ax+B)/(ax²+bx+c)
 Pause 
 Goto NT
 
@@ -134,7 +156,7 @@ Disp "v(t) & a(t) have same sign
 Disp "
 Disp "particle is slowing down 
 Disp "or speed is decreasing if:
-Disp "v(t) & a(t) have diff signs
+Disp "v(t)&a(t) have diff signs
 Pause 
 ClrHome
 Disp "ARC LENGTH/DISTANCE: 
@@ -145,7 +167,7 @@ Goto NZ
 Lbl NE
 ClrHome
 Disp "2D PARAMETRICS
-Disp "distance=∫√(x'(t)²+y'(t)²)dt
+Disp "dist=∫√(x'(t)²+y'(t)²)dt
 Disp "2nd derivative formula:
 Disp "d²y/dx²=
 Disp "d/dt[y'(t)/x'(t)]/(dx/dt)
@@ -155,13 +177,52 @@ Disp "Horiz: y'(t)=0, x'(t)≠0
 Disp "Vert: x'(t)=0, y'(t)≠0
 Pause 
 Goto NZ
+Lbl MO
+ClrHome
+Disp "POLAR:
+Disp "dy/dx
+Disp "=(r'sinθ+rcosθ)*
+Disp "1/(r'cosθ-rsinθ)
+Disp "
+Disp "L=∫_α^β √(r²+(dr/dθ)²)dθ
+Disp "
+Disp "x=rcos(θ)
+Disp "y=rsin(θ)
+Pause 
+ClrHome
+Disp "Circle: r=a
+Disp "Line: θ=a
+Disp "
+Pause 
+Goto NZ
+Lbl C1
 Disp "SERIES
 Disp "TAYLOR:
-Disp "∑_{n=0}^∞ f^(n)(c)/n! (x-c)^n
+Disp "Σ_{n=0}^inf 
+Disp "f^(n)(c)/n! (x-c)^n
 Disp "^MACLAURIN WHEN c=0
 Disp "
 Disp "Alternating Err: 
 Disp "Err=|S-S_n|=a_{n+1}
+Pause 
+ClrHome
+Disp "sin(x)=Σ_{n=0}^inf 
+Disp "(-1)^n/(2n+1)! x^(2n+1)
+Disp "
+Disp "cos(x)=Σ_{n=0}^inf 
+Disp "(-1)^n/(2n)! x^(2n)
+Disp "
+Disp "e^x=Σ0^i x^n/n!
+Pause 
+ClrHome
+Disp "GEOMETRIC
+Disp "S_n=a(1-r^n)/(1-r)
+Disp "of |r|<1: S_inf=a/(1-r)
+Disp "GEOMETRIC (DIFF:+1):
+Disp "1/(1-x)=Σ0^i x^n
+Disp "1/(1-x)²=Σ1^i nx^(n-1)
+Disp "ln(1+x)
+Disp "=Σ1^i (-1)^(n+1)x^n/n!
 Pause 
 ClrHome
 Disp "LAGRANGE ERR BOUND:
@@ -175,82 +236,6 @@ Disp "of f^(n+1)(x)
 Pause 
 Goto NZ
 
-Lbl MO
-ClrHome
-Disp "POLAR:
-Disp "dy/dx
-Disp "=(r'sinθ+rcosθ)/(r'cosθ-rsinθ)
-Disp "
-Disp "L=∫_α^β √(r²+(dr/dθ)²)dθ
-Disp "
-Disp "x=rcos(θ)
-Disp "y=rsin(θ)
-Pause 
-ClrHome
-Disp "Circle: r=a
-Disp "Line: θ=a
-Disp "
-Pause 
-Goto NZ
-
-Lbl PM
-ClrHome
-Disp "H=L(F-cos(θ))
-Disp "CONICAL PENDULUM
-Disp "X:Tsin(θ)=MV²/R
-Disp "Y:Tcos(θ)=MG
-Disp "tan(θ=V²/R
-Disp "T=2π√(Lcos(θ)/G)
-Disp "Tp=2π√(L/P)
-Pause 
-Goto 1
-Lbl GR
-Disp "F=(­GM2M1)/ R²
-Disp "sMaLL G = GM/R²
-Disp "U=(­GM1M2)/ R = ­GM SdM/R
-Disp "obJs near planet
-Disp "Et=.5Mv²-(GM1M2)/R
-Pause 
-ClrHome
-Disp "Sattelites
-Disp "v=√((GM)/R)
-Disp "Et=­(GM1M2)/2R
-Disp "Vesc=√(2GM/R)
-Disp "Mass distr.
-Disp "r1 v1=r2 v2
-Disp "G=6.7­11
-Disp "M'=(Mr)/R
-Pause 
-Goto 1
-
-Lbl HM
-ClrHome
-Disp "X=Asin(wt)
-Disp "V=Awcos(wt)
-Disp "a=-Aw²sin(wt)
-Disp "(X/A)²+(V/Aw)²=1
-Disp "(V/Aw)+(a/(Aw²))=1
-Disp "a=-w²X     Y=F(X-vt)
-Disp "XMAX=A,vMAX=Aw,aMAX=Aw²
-Disp "w=2π/T=√(K/M),T=1/F
-Disp "d²X/dt²=(­K/M)X
-Pause 
-ClrHome
-Disp "sin()-IF MOTION STARTS WHEN
-Disp "AMP=0
-Disp "cos()-AMP>0 or AMP<0
-Disp "E=.5KA²
-Disp "U=.5KX²,K=.5Mv²
-Disp "df=n/(2L)v=n/(2L)√(T/(Mu)
-Disp "Mu=M/L
-Disp "°F=Fs((Vw-V°)/(Vw-Vs))
-Disp "'+'-FROM SOURCE TO OBS
-Pause 
-ClrHome
-Disp "L=(n/2)(WAVELENGTH)
-Disp "v=F(WAVELENGTH)
-Pause 
-Goto NT
 Lbl RT
 ClrHome
 Disp "s=rθ     X->θ
