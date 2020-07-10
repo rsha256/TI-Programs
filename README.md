@@ -1,7 +1,7 @@
 # Real-TI-Programs
 This Repository contains programs that could possibly be used for cheating! Do not cheat, this is only for reference-not meant for academic use. I am not responsible for any academic Integrity violations.
 
-This repository has all calculator's programs that i have picked up. If you want source code e-mail me at rahuldshah3@gmail.com
+This repository has all the calculator's programs that I found useful in my high school career. Some are not by me and all rights are reserved to the respective owners (some file descriptions were unfortunately lost when my old computer broke but i managed to transfer whatever were in my calculators at the time to my computer and scavenge some data back. If you want source code for something self-made, e-mail me at rahuldshah3@gmail.com
 
 To Archive and UnArchive: 2nd then + then 2 then 7 (the * means it IS archived)
 
@@ -30,7 +30,7 @@ LOGARITHM - does logarithms with bases other than 10
 
 QUAD - solves the quadratic equation and gives you the real and imaginary solutions
 
-SQRTSIMP - simplifies a radical
+SQRTSIMP - simplifies a radical (mimics the output of the TI-36x pro, the most useful scientific calculator out there)
 
 ## Games
 
@@ -38,7 +38,7 @@ PRGM 1. pkmnred is a shortened version of pkred i made for the TI-84PCSE (not fo
 
 download pkmnred.8ck to your computer
 download the connectivety software for your calc
-upload pkmnred.8ck to ur calc (from your computer using the connectivity software)
+upload pkmnred.8ck to your calc (from your computer using the connectivity software)
 apps
 play pokemon CMDS 2ND- A ALPHA - B MODE - START X0TN - SELECT ARROWS - D-PAD
 PRGM 2. pkred is the full version game of pokemon red (belongs to gamefreak) available for the Thttps://education.ti.com/en/software/details/en/CA9C74CAD02440A69FDC7189D7E1B6C2/swticonnectcesoftwareI-84PCSE not recommended (your calc will have space for this only )
