@@ -41,9 +41,9 @@ download the connectivety software for your calc
 upload pkmnred.8ck to your calc (from your computer using the connectivity software)
 apps
 play pokemon CMDS 2ND- A ALPHA - B MODE - START X0TN - SELECT ARROWS - D-PAD
-PRGM 2. pkred is the full version game of pokemon red (belongs to gamefreak) available for the Thttps://education.ti.com/en/software/details/en/CA9C74CAD02440A69FDC7189D7E1B6C2/swticonnectcesoftwareI-84PCSE not recommended (your calc will have space for this only )
+PRGM 2. pkred is the full version game of pokemon red (belongs to gamefreak) available for the [TI-84PCSE]( https://education.ti.com/en/software/details/en/CA9C74CAD02440A69FDC7189D7E1B6C2/swticonnectcesoftware) not recommended (your calc will have space for this only )
 
-BELOW ARE PROGRAMS FOR THE TI-84 Plus CE (uploading to calculator requires (TI-Connect CE)[https://education.ti.com/en/software/details/en/CA9C74CAD02440A69FDC7189D7E1B6C2/swticonnectcesoftware]):
+BELOW ARE PROGRAMS FOR THE TI-84 Plus CE (uploading to calculator requires [TI-Connect CE](https://education.ti.com/en/software/details/en/CA9C74CAD02440A69FDC7189D7E1B6C2/swticonnectcesoftware):
 
 PRGM 3. CE2048
 
